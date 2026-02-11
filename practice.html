@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Practice - Teachmint</title>
+  <style>
+    :root {
+      --bg-top: #123055;
+      --bg-main: #08111f;
+      --panel: #173556;
+      --option: #26384c;
+      --option-border: #3b4f66;
+      --text: #eef3ff;
+      --muted: #a8b5ca;
+      --ok: #4ad69f;
+      --bad: #ff7fa3;
+      --warn: #f7c06d;
+      --btn: #2a7ac2;
+    }
+
+    * { box-sizing: border-box; }
+
+    .hidden { display: none !important; }
+
+    body {
+      margin: 0;
+      font-family: "Poppins", "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, var(--bg-top) 0%, #0d213a 32%, var(--bg-main) 100%);
+      min-height: 100vh;
+      padding: 0.9rem;
+    }
+
+    .container {
+      width: min(760px, 96vw);
+      margin: 0 auto;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .back {
+      border: 1px solid #4a6380;
+      background: rgba(16, 34, 56, 0.85);
+      color: #eef4ff;
+      border-radius: 11px;
+      padding: 0.5rem 0.72rem;
+      text-decoration: none;
+      font-size: 0.92rem;
+    }
+
+    .progress {
+      color: #c7d5e9;
+      font-size: 0.95rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .progress-visual {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      padding: 0.3rem 0.35rem;
+      border-radius: 999px;
+      border: 1px solid rgba(118, 147, 182, 0.55);
+      background: rgba(14, 31, 52, 0.75);
+    }
+
+    .progress-step {
+      width: 12px;
+      height: 5px;
+      border-radius: 999px;
+      background: #385273;
+      transition: background-color 0.15s ease;
+    }
+
+    .progress-step.done {
+      background: #4cd964;
+    }
+
+    .topic {
+      border: 1px solid rgba(167, 196, 228, 0.2);
+      background: linear-gradient(180deg, rgba(29, 66, 106, 0.85), rgba(21, 47, 75, 0.85));
+      border-radius: 14px;
+      padding: 0.95rem;
+      margin-bottom: 0.95rem;
+    }
+
+    .topic h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 4.1vw, 1.75rem);
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .topic .meta {
+      margin-top: 0.35rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .q-block {
+      margin-top: 0.8rem;
+    }
+
+    .q-text {
+      margin: 0 0 0.95rem;
+      font-size: clamp(1.35rem, 4.4vw, 2.05rem);
+      font-weight: 600;
+      line-height: 1.27;
+      color: #f6f8ff;
+    }
+
+    .options {
+      display: grid;
+      gap: 0.72rem;
+    }
+
+    .opt {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--option-border);
+      border-radius: 13px;
+      background: var(--option);
+      color: #edf2ff;
+      padding: 0.78rem 0.82rem;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.72rem;
+      transition: border-color 0.12s ease, transform 0.08s ease;
+    }
+
+    .opt:hover {
+      border-color: #72a3d8;
+      transform: translateY(-1px);
+    }
+
+    .opt-tag {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #41566e;
+      color: #ecf3ff;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .opt-text {
+      font-size: clamp(1.02rem, 3.2vw, 1.18rem);
+      line-height: 1.35;
+    }
+
+    .opt.selected {
+      border-color: #8ec3ff;
+      background: #30465e;
+    }
+
+    .opt.correct {
+      border-color: var(--ok);
+      background: #20483f;
+    }
+
+    .opt.wrong {
+      border-color: var(--bad);
+      background: #4a2734;
+    }
+
+    .footer {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .action {
+      border: 0;
+      border-radius: 10px;
+      padding: 0.55rem 0.85rem;
+      cursor: pointer;
+      background: var(--btn);
+      color: white;
+      font-weight: 600;
+    }
+
+    .action:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .empty {
+      border: 1px solid rgba(167, 196, 228, 0.2);
+      border-radius: 14px;
+      padding: 1rem;
+      background: rgba(25, 49, 78, 0.55);
+      color: #dbe5f8;
+    }
+
+    .complete-card {
+      border: 1px solid rgba(167, 196, 228, 0.22);
+      border-radius: 16px;
+      padding: 1.1rem;
+      background: linear-gradient(180deg, rgba(30, 35, 50, 0.95), rgba(24, 28, 40, 0.95));
+      color: #eef3ff;
+      text-align: center;
+    }
+
+    .complete-art {
+      font-size: 4.1rem;
+      line-height: 1;
+      margin: 0.15rem 0 0.6rem;
+    }
+
+    .complete-title {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 2.65rem);
+      font-weight: 700;
+    }
+
+    .complete-sub {
+      margin-top: 0.35rem;
+      color: #a8b5ca;
+      font-size: 1rem;
+      word-break: break-word;
+    }
+
+    .stats-grid {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .stat-card {
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      padding: 0.7rem 0.6rem 0.9rem;
+      text-align: center;
+    }
+
+    .stat-card.solved {
+      background: linear-gradient(180deg, rgba(91, 74, 18, 0.7), rgba(69, 54, 10, 0.55));
+      border-color: rgba(201, 176, 67, 0.45);
+    }
+
+    .stat-card.accuracy {
+      background: linear-gradient(180deg, rgba(44, 92, 29, 0.7), rgba(24, 62, 18, 0.55));
+      border-color: rgba(88, 201, 85, 0.45);
+    }
+
+    .stat-label {
+      font-size: 0.86rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #d7def1;
+    }
+
+    .stat-value {
+      margin-top: 0.45rem;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .next-topic-btn {
+      margin-top: 1rem;
+      width: 100%;
+      border: 0;
+      border-radius: 13px;
+      padding: 0.85rem 0.9rem;
+      background: linear-gradient(135deg, #2f9bf0, #2377bc);
+      color: #f4f8ff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      text-align: left;
+      font: inherit;
+    }
+
+    .next-topic-main {
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .next-topic-sub {
+      margin-top: 0.15rem;
+      color: #d4e8ff;
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    .next-topic-arrow {
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1;
+      opacity: 0.95;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="top">
+      <a class="back" href="index.html">Back</a>
+      <div class="top-right">
+        <div id="progressVisual" class="progress-visual" aria-label="Question progress"></div>
+        <div id="progress" class="progress">Question 0 / 0</div>
+      </div>
+    </div>
+
+    <section class="topic">
+      <h1 id="title">Loading...</h1>
+      <div id="meta" class="meta"></div>
+    </section>
+
+    <section id="questionSection" class="q-block hidden">
+      <p id="questionText" class="q-text"></p>
+      <div id="options" class="options"></div>
+
+      <div class="footer">
+        <button id="actionBtn" class="action" type="button">Check Answer</button>
+      </div>
+    </section>
+
+    <section id="emptySection" class="empty hidden"></section>
+  </main>
+
+  <script>
+    const SESSION_KEY = "pq_session_v1";
+    const FILES_KEY = "pq_files_v1";
+    const PRACTICE_PROGRESS_KEY = "pq_practice_progress_v1";
+    const ANALYTICS_KEY = "pq_analytics_v1";
+    const RESET_MARKER_KEY = "pq_reset_farhaan_done_v12";
+
+    const titleEl = document.getElementById("title");
+    const metaEl = document.getElementById("meta");
+    const progressEl = document.getElementById("progress");
+    const questionSection = document.getElementById("questionSection");
+    const questionTextEl = document.getElementById("questionText");
+    const optionsEl = document.getElementById("options");
+    const actionBtn = document.getElementById("actionBtn");
+    const emptySection = document.getElementById("emptySection");
+    const progressVisualEl = document.getElementById("progressVisual");
+
+    const optionTags = ["A", "B", "C", "D", "E", "F"];
+
+    let file = null;
+    let questions = [];
+    let currentIndex = 0;
+    let selectedChoice = null;
+    let evaluated = false;
+    let attemptedSet = new Set();
+    let correctSet = new Set();
+    let queue = [];
+    let queuePointer = 0;
+    let runAttemptedSet = new Set();
+    let runFirstAttemptCorrectCount = 0;
+    let pageMode = "practice";
+    let firstTryCorrectSet = new Set();
+    let reviewAttemptedSet = new Set();
+    let reviewFirstTryCorrectSet = new Set();
+    let questionStartTs = 0;
+
+    function getAllFiles() {
+      try { return JSON.parse(localStorage.getItem(FILES_KEY) || "[]"); }
+      catch { return []; }
+    }
+
+    function getPracticeProgressStore() {
+      try { return JSON.parse(localStorage.getItem(PRACTICE_PROGRESS_KEY) || "{}"); }
+      catch { return {}; }
+    }
+
+    function getAnalyticsStore() {
+      try { return JSON.parse(localStorage.getItem(ANALYTICS_KEY) || "{}"); }
+      catch { return {}; }
+    }
+
+    function savePracticeProgressStore(store) {
+      localStorage.setItem(PRACTICE_PROGRESS_KEY, JSON.stringify(store));
+    }
+
+    function saveAnalyticsStore(store) {
+      localStorage.setItem(ANALYTICS_KEY, JSON.stringify(store));
+    }
+
+    function resetProgressForFarhaanIfNeeded(email) {
+      if (email !== "farhaan@teachmint.com") return;
+      if (localStorage.getItem(RESET_MARKER_KEY) === "1") return;
+
+      const store = getPracticeProgressStore();
+      const analytics = getAnalyticsStore();
+      const prefix = `${email}::`;
+      let changed = false;
+      let analyticsChanged = false;
+      for (const key of Object.keys(store)) {
+        if (key.startsWith(prefix)) {
+          delete store[key];
+          changed = true;
+        }
+      }
+      for (const key of Object.keys(analytics)) {
+        if (key.startsWith(prefix)) {
+          delete analytics[key];
+          analyticsChanged = true;
+        }
+      }
+      if (changed) {
+        savePracticeProgressStore(store);
+      }
+      if (analyticsChanged) {
+        saveAnalyticsStore(analytics);
+      }
+      localStorage.setItem(RESET_MARKER_KEY, "1");
+    }
+
+    function progressKey(email, fileId) {
+      return `${email}::${fileId}`;
+    }
+
+    function recordAnswer(email, fileId, index, isCorrect) {
+      const store = getPracticeProgressStore();
+      const key = progressKey(email, fileId);
+      const raw = store[key];
+      const attempts = new Set(
+        Array.isArray(raw) ? raw : (raw && Array.isArray(raw.attempted) ? raw.attempted : [])
+      );
+      const correct = new Set(raw && Array.isArray(raw.correct) ? raw.correct : []);
+
+      attempts.add(index);
+      if (isCorrect) correct.add(index);
+
+      store[key] = { attempted: [...attempts], correct: [...correct] };
+      savePracticeProgressStore(store);
+      attemptedSet = attempts;
+      correctSet = correct;
+    }
+
+    function recordPhaseAttempt(email, fileId, phase, index, isCorrect, elapsedMs) {
+      const store = getAnalyticsStore();
+      const key = progressKey(email, fileId);
+      const raw = store[key];
+      const attemptedKey = `${phase}_attempted`;
+      const firstTryKey = `${phase}_first_try_correct`;
+      const timeByQuestionKey = `${phase}_time_ms_by_question`;
+
+      const attempted = new Set(raw && Array.isArray(raw[attemptedKey]) ? raw[attemptedKey] : []);
+      const firstTryCorrect = new Set(raw && Array.isArray(raw[firstTryKey]) ? raw[firstTryKey] : []);
+      const timeByQuestion = raw && raw[timeByQuestionKey] && typeof raw[timeByQuestionKey] === "object" ? raw[timeByQuestionKey] : {};
+
+      const isFirstAttemptInPhase = !attempted.has(index);
+      attempted.add(index);
+      if (isFirstAttemptInPhase && isCorrect) {
+        firstTryCorrect.add(index);
+      }
+      if (isFirstAttemptInPhase) {
+        timeByQuestion[String(index)] = Math.max(0, Math.round(elapsedMs || 0));
+      }
+
+      store[key] = {
+        ...(raw && typeof raw === "object" ? raw : {}),
+        [attemptedKey]: [...attempted],
+        [firstTryKey]: [...firstTryCorrect],
+        [timeByQuestionKey]: timeByQuestion
+      };
+      saveAnalyticsStore(store);
+
+      if (phase === "practice") {
+        attemptedSet = attempted;
+        firstTryCorrectSet = firstTryCorrect;
+      } else {
+        reviewAttemptedSet = attempted;
+        reviewFirstTryCorrectSet = firstTryCorrect;
+      }
+    }
+
+    function showEmpty(message) {
+      questionSection.classList.add("hidden");
+      emptySection.classList.remove("hidden");
+      emptySection.textContent = message;
+      progressEl.textContent = "Question 0 / 0";
+    }
+
+    function showComplete() {
+      questionSection.classList.add("hidden");
+      emptySection.classList.remove("hidden");
+      const solved = pageMode === "practice" ? attemptedSet.size : reviewAttemptedSet.size;
+      const firstTryCorrectCount = pageMode === "practice" ? firstTryCorrectSet.size : reviewFirstTryCorrectSet.size;
+      const accuracy = solved ? Math.round((firstTryCorrectCount / solved) * 100) : 0;
+      const completionTitle = pageMode === "review" ? "Review Completed" : "Practice Completed";
+      emptySection.innerHTML = `
+        <div class="complete-card">
+          <div class="complete-art">🌟</div>
+          <h2 class="complete-title">${completionTitle}</h2>
+          <div class="complete-sub">${file ? file.name : "Topic"}</div>
+          <div class="stats-grid">
+            <div class="stat-card solved">
+              <div class="stat-label">SOLVED</div>
+              <div class="stat-value">${solved}</div>
+            </div>
+            <div class="stat-card accuracy">
+              <div class="stat-label">ACCURACY</div>
+              <div class="stat-value">${accuracy}%</div>
+            </div>
+          </div>
+          <button id="goLibraryBtn" class="next-topic-btn" type="button">
+            <span class="next-topic-main">Return to Home</span>
+          </button>
+        </div>
+      `;
+      progressEl.textContent = `Question ${questions.length} / ${questions.length}`;
+      const goLibraryBtn = document.getElementById("goLibraryBtn");
+      if (goLibraryBtn) {
+        goLibraryBtn.addEventListener("click", () => {
+          window.location.href = "index.html";
+        });
+      }
+    }
+
+    function buildQueue() {
+      if (pageMode === "review") {
+        queue = questions.map((_, idx) => idx);
+      } else {
+        queue = questions.map((_, idx) => idx).filter((idx) => !correctSet.has(idx));
+      }
+
+      queuePointer = 0;
+      currentIndex = queue[0] ?? 0;
+    }
+
+    function updateProgress() {
+      if (pageMode === "review") {
+        progressEl.textContent = `Question ${Math.min(queuePointer + 1, questions.length)} / ${questions.length}`;
+        renderProgressVisual(Math.min(queuePointer + 1, questions.length), questions.length);
+      } else {
+        progressEl.textContent = `Question ${correctSet.size} / ${questions.length}`;
+        renderProgressVisual(correctSet.size, questions.length);
+      }
+    }
+
+    function renderProgressVisual(done, total) {
+      if (!progressVisualEl) return;
+      const safeTotal = Math.max(0, total);
+      const safeDone = Math.max(0, Math.min(done, safeTotal));
+      progressVisualEl.innerHTML = "";
+      for (let i = 0; i < safeTotal; i += 1) {
+        const step = document.createElement("span");
+        step.className = `progress-step ${i < safeDone ? "done" : ""}`.trim();
+        progressVisualEl.appendChild(step);
+      }
+    }
+
+    function renderQuestion() {
+      const q = questions[currentIndex];
+      selectedChoice = null;
+      evaluated = false;
+      questionStartTs = Date.now();
+
+      questionTextEl.textContent = q.prompt;
+      updateProgress();
+      actionBtn.textContent = "Check Answer";
+      actionBtn.disabled = true;
+      optionsEl.innerHTML = "";
+
+      q.choices.forEach((choice, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "opt";
+        btn.dataset.choice = choice;
+
+        const tag = optionTags[idx] || String(idx + 1);
+        btn.innerHTML = `<span class="opt-tag">${tag}</span><span class="opt-text">${choice}</span>`;
+
+        btn.addEventListener("click", () => {
+          if (evaluated) return;
+          selectedChoice = choice;
+          actionBtn.disabled = false;
+          Array.from(optionsEl.children).forEach((node) => node.classList.remove("selected"));
+          btn.classList.add("selected");
+        });
+
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    function evaluateCurrent() {
+      if (!selectedChoice) {
+        return;
+      }
+
+      const q = questions[currentIndex];
+      evaluated = true;
+      const firstAttemptInRun = !runAttemptedSet.has(currentIndex);
+      runAttemptedSet.add(currentIndex);
+      const isCorrect = selectedChoice.toLowerCase() === String(q.answer).toLowerCase();
+      const elapsedMs = Date.now() - questionStartTs;
+      if (isCorrect && firstAttemptInRun) {
+        runFirstAttemptCorrectCount += 1;
+      }
+      if (file && file.id) {
+        if (pageMode === "practice") {
+          recordAnswer(email, file.id, currentIndex, isCorrect);
+          recordPhaseAttempt(email, file.id, "practice", currentIndex, isCorrect, elapsedMs);
+        } else {
+          recordPhaseAttempt(email, file.id, "review", currentIndex, isCorrect, elapsedMs);
+        }
+      }
+
+      Array.from(optionsEl.children).forEach((node) => {
+        const isAnswer = node.dataset.choice.toLowerCase() === String(q.answer).toLowerCase();
+        const isSelected = node.dataset.choice === selectedChoice;
+
+        if (isAnswer) node.classList.add("correct");
+        if (isSelected && !isAnswer) node.classList.add("wrong");
+      });
+
+      updateProgress();
+      const isLastInQueue = queuePointer >= queue.length - 1;
+      actionBtn.textContent = isLastInQueue ? "Continue" : "Next Question";
+    }
+
+    function goNext() {
+      if (queuePointer < queue.length - 1) {
+        queuePointer += 1;
+        currentIndex = queue[queuePointer];
+        renderQuestion();
+        return;
+      }
+
+      if (pageMode === "review") {
+        showComplete();
+        return;
+      }
+
+      if (correctSet.size >= questions.length) {
+        showComplete();
+        return;
+      }
+
+      buildQueue();
+      if (!queue.length) {
+        showComplete();
+        return;
+      }
+
+      renderQuestion();
+    }
+
+    actionBtn.addEventListener("click", () => {
+      if (!evaluated) {
+        evaluateCurrent();
+      } else {
+        goNext();
+      }
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const modeParam = params.get("mode");
+    const email = localStorage.getItem(SESSION_KEY);
+    pageMode = modeParam === "review" ? "review" : "practice";
+    if (email) resetProgressForFarhaanIfNeeded(email);
+
+    if (!email) {
+      titleEl.textContent = "Session expired";
+      metaEl.textContent = "Please login again.";
+      showEmpty("Open index.html and login, then start Practice again.");
+    } else if (!id) {
+      titleEl.textContent = "Missing file";
+      showEmpty("No file id was provided.");
+    } else {
+      file = getAllFiles().find((f) => f.id === id && f.email === email);
+      if (!file) {
+        titleEl.textContent = "File not found";
+        showEmpty("This file is not available for the current user.");
+      } else {
+        titleEl.textContent = file.name;
+        metaEl.textContent = `Uploaded ${new Date(file.uploadedAt).toLocaleString()}`;
+        questions = Array.isArray(file.questions) ? file.questions.slice(0, 10) : [];
+        const store = getPracticeProgressStore();
+        const key = progressKey(email, file.id);
+        const raw = store[key];
+        attemptedSet = new Set(
+          Array.isArray(raw) ? raw : (raw && Array.isArray(raw.attempted) ? raw.attempted : [])
+        );
+        correctSet = new Set(raw && Array.isArray(raw.correct) ? raw.correct : []);
+        const analyticsRaw = getAnalyticsStore()[key];
+        firstTryCorrectSet = new Set(analyticsRaw && Array.isArray(analyticsRaw.practice_first_try_correct) ? analyticsRaw.practice_first_try_correct : []);
+        reviewAttemptedSet = new Set(analyticsRaw && Array.isArray(analyticsRaw.review_attempted) ? analyticsRaw.review_attempted : []);
+        reviewFirstTryCorrectSet = new Set(analyticsRaw && Array.isArray(analyticsRaw.review_first_try_correct) ? analyticsRaw.review_first_try_correct : []);
+
+        if (!questions.length) {
+          showEmpty("No questions were generated for this file.");
+        } else {
+          runAttemptedSet = new Set();
+          runFirstAttemptCorrectCount = 0;
+          buildQueue();
+          if (!queue.length) {
+            showComplete();
+          } else {
+            questionSection.classList.remove("hidden");
+            emptySection.classList.add("hidden");
+            renderQuestion();
+          }
+        }
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics - Teachmint</title>
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --panel: #171d2f;
+      --line: #2f3856;
+      --text: #eef2ff;
+      --muted: #a7b0ce;
+    }
+    * { box-sizing: border-box; }
+    .hidden { display: none !important; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Poppins", "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(165deg, #0a0e1a 0%, #11182a 100%);
+      padding: 1rem;
+    }
+    .container { width: min(860px, 96vw); margin: 0 auto; }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 0.85rem;
+    }
+    .back {
+      border: 1px solid #45507b;
+      background: #1b2238;
+      color: #f1f4ff;
+      border-radius: 11px;
+      padding: 0.48rem 0.72rem;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      padding: 1rem;
+    }
+    h1 { margin: 0; font-size: clamp(1.2rem, 4vw, 1.7rem); }
+    .muted { color: var(--muted); margin-top: 0.35rem; }
+
+    .metric-label {
+      color: #d8d2ff;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .metric-value {
+      margin-top: 0.3rem;
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .chart-wrap {
+      margin-top: 0.9rem;
+      border-radius: 14px;
+      border: 1px solid rgba(138, 123, 255, 0.45);
+      background: linear-gradient(180deg, rgba(49, 43, 94, 0.35), rgba(30, 25, 59, 0.22));
+      padding: 0.7rem;
+    }
+
+    .chart-head {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .legend {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.3rem;
+      justify-content: flex-start;
+    }
+
+    .legend-item {
+      display: inline-grid;
+      grid-template-columns: 10px auto;
+      align-items: center;
+      justify-content: start;
+      width: 96px;
+      column-gap: 0.42rem;
+      color: #dbe2f8;
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+
+    .legend-swatch.practice { background: #67e0a6; }
+    .legend-swatch.review { background: #66b7ff; }
+
+    .view-toggle-row {
+      margin-top: 0.9rem;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .toggle-label {
+      color: #d7ddf7;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .toggle {
+      position: relative;
+      width: 46px;
+      height: 26px;
+      appearance: none;
+      border: 1px solid #55618b;
+      border-radius: 999px;
+      background: #1d2742;
+      outline: none;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: #dfe8ff;
+      transition: transform 0.15s ease;
+    }
+
+    .toggle:checked {
+      background: #2f9bf0;
+      border-color: #69bfff;
+    }
+
+    .toggle:checked::after {
+      transform: translateX(20px);
+    }
+
+    .radar {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .numbers-table-wrap {
+      margin-top: 0.9rem;
+      border-radius: 14px;
+      border: 1px solid rgba(138, 123, 255, 0.45);
+      background: linear-gradient(180deg, rgba(49, 43, 94, 0.35), rgba(30, 25, 59, 0.22));
+      overflow: hidden;
+    }
+
+    .numbers-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+
+    .numbers-table th,
+    .numbers-table td {
+      border-bottom: 1px solid rgba(129, 141, 184, 0.25);
+      padding: 0.62rem 0.65rem;
+      text-align: left;
+    }
+
+    .numbers-table th {
+      background: rgba(21, 26, 43, 0.65);
+      color: #d8dff6;
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.02em;
+    }
+
+    .numbers-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .numbers-table td {
+      color: #ebefff;
+    }
+
+    .numbers-table td:first-child {
+      color: #c7d0ef;
+      font-weight: 600;
+    }
+
+    .empty {
+      margin-top: 0.9rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.9rem;
+      color: var(--muted);
+      background: rgba(19, 25, 42, 0.7);
+    }
+
+    @media (max-width: 720px) {
+      .numbers-table {
+        font-size: 0.86rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="top">
+      <h1>Analytics</h1>
+      <a class="back" href="index.html">Back</a>
+    </div>
+
+    <section class="panel">
+      <h2 id="fileTitle">Loading...</h2>
+      <div id="fileMeta" class="muted"></div>
+      <div id="content"></div>
+    </section>
+  </main>
+
+  <script>
+    const SESSION_KEY = "pq_session_v1";
+    const FILES_KEY = "pq_files_v1";
+    const ANALYTICS_KEY = "pq_analytics_v1";
+
+    const fileTitleEl = document.getElementById("fileTitle");
+    const fileMetaEl = document.getElementById("fileMeta");
+    const contentEl = document.getElementById("content");
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const email = localStorage.getItem(SESSION_KEY);
+
+    function getAllFiles() {
+      try { return JSON.parse(localStorage.getItem(FILES_KEY) || "[]"); }
+      catch { return []; }
+    }
+
+    function getAnalyticsStore() {
+      try { return JSON.parse(localStorage.getItem(ANALYTICS_KEY) || "{}"); }
+      catch { return {}; }
+    }
+
+    function showEmpty(message) {
+      contentEl.innerHTML = `<div class=\"empty\">${message}</div>`;
+    }
+
+    function radarSvgBoth(practiceVals, reviewVals, showReview) {
+      const p = practiceVals.map((v) => Math.max(0, Math.min(100, Number(v) || 0)));
+      const rVals = reviewVals.map((v) => Math.max(0, Math.min(100, Number(v) || 0)));
+      const cx = 180;
+      const cy = 145;
+      const r = 108;
+      const angles = [-90, 30, 150].map((deg) => deg * Math.PI / 180);
+      const pt = (rad, ang) => `${(cx + Math.cos(ang) * rad).toFixed(1)},${(cy + Math.sin(ang) * rad).toFixed(1)}`;
+      const ring = (scale) => angles.map((a) => pt(r * scale, a)).join(" ");
+      const pData = angles.map((a, idx) => pt(r * (p[idx] / 100), a)).join(" ");
+      const rvData = angles.map((a, idx) => pt(r * (rVals[idx] / 100), a)).join(" ");
+      const axes = [
+        { x: cx, y: cy - r - 14, t: "Completion" },
+        { x: cx + r * 0.92 + 5, y: cy + r * 0.56 + 2, t: "Accuracy" },
+        { x: cx - r * 0.92 - 5, y: cy + r * 0.56 + 2, t: "Speed" }
+      ];
+
+      return `
+        <svg class="radar" viewBox="0 0 360 305" role="img" aria-label="Radar chart">
+          <polygon points="${ring(1)}" fill="none" stroke="rgba(169,180,214,0.35)" />
+          <polygon points="${ring(0.75)}" fill="none" stroke="rgba(169,180,214,0.25)" />
+          <polygon points="${ring(0.5)}" fill="none" stroke="rgba(169,180,214,0.2)" />
+          <polygon points="${ring(0.25)}" fill="none" stroke="rgba(169,180,214,0.15)" />
+          ${angles.map((a) => `<line x1="${cx}" y1="${cy}" x2="${(cx + Math.cos(a) * r).toFixed(1)}" y2="${(cy + Math.sin(a) * r).toFixed(1)}" stroke="rgba(169,180,214,0.3)" />`).join("")}
+          <polygon points="${pData}" fill="#67e0a6" fill-opacity="0.33" stroke="#67e0a6" stroke-width="2" />
+          ${showReview ? `<polygon points="${rvData}" fill="#66b7ff" fill-opacity="0.33" stroke="#66b7ff" stroke-width="2" />` : ""}
+          ${axes.map((m) => `<text x="${m.x}" y="${m.y}" fill="#d9dff7" font-size="11" text-anchor="${m.x === cx ? "middle" : (m.x > cx ? "start" : "end")}">${m.t}</text>`).join("")}
+        </svg>
+      `;
+    }
+
+    if (!email) {
+      fileTitleEl.textContent = "Session expired";
+      showEmpty("Please login again from Home.");
+    } else if (!id) {
+      fileTitleEl.textContent = "Missing file";
+      showEmpty("No file id was provided.");
+    } else {
+      const file = getAllFiles().find((f) => f.id === id && f.email === email);
+      if (!file) {
+        fileTitleEl.textContent = "File not found";
+        showEmpty("This file is not available for the current user.");
+      } else {
+        fileTitleEl.textContent = String(file.name || "").replace(/\.[^./\\]+$/, "");
+        fileMetaEl.textContent = "";
+
+        const store = getAnalyticsStore();
+        const key = `${email}::${file.id}`;
+        const raw = store[key];
+        const getSetSize = (arr) => new Set(Array.isArray(arr) ? arr : []).size;
+        const sumTimeMs = (obj) => {
+          if (!obj || typeof obj !== "object") return 0;
+          return Object.values(obj).reduce((sum, val) => sum + (Number(val) || 0), 0);
+        };
+
+        const totalQuestions = Array.isArray(file.questions) && file.questions.length ? file.questions.length : 10;
+
+        const practiceAttempted = getSetSize(raw && raw.practice_attempted);
+        const practiceFirstTry = getSetSize(raw && raw.practice_first_try_correct);
+        const practiceAccuracy = practiceAttempted ? Math.round((practiceFirstTry / practiceAttempted) * 100) : 0;
+        const practiceAvgTimeSec = practiceAttempted ? (sumTimeMs(raw && raw.practice_time_ms_by_question) / 1000 / practiceAttempted) : 0;
+
+        const reviewAttempted = getSetSize(raw && raw.review_attempted);
+        const reviewFirstTry = getSetSize(raw && raw.review_first_try_correct);
+        const reviewAccuracy = reviewAttempted ? Math.round((reviewFirstTry / reviewAttempted) * 100) : 0;
+        const reviewAvgTimeSec = reviewAttempted ? (sumTimeMs(raw && raw.review_time_ms_by_question) / 1000 / reviewAttempted) : 0;
+
+        const completionPct = (attempted) => (totalQuestions ? Math.round((attempted / totalQuestions) * 100) : 0);
+        const timeScore = (avgSec) => {
+          if (avgSec <= 1) return 100;
+          if (avgSec >= 5) return 0;
+          return Math.round((5 - avgSec) / 4 * 100);
+        };
+
+        const practiceCompletion = completionPct(practiceAttempted);
+        const practiceSpeed = timeScore(practiceAvgTimeSec);
+        const reviewCompletion = completionPct(reviewAttempted);
+        const reviewSpeed = timeScore(reviewAvgTimeSec);
+
+        const hasReviewStarted = reviewAttempted > 0;
+        const pctChange = (practiceVal, reviewVal, betterWhenLower = false) => {
+          if (!hasReviewStarted) return "-";
+          if (practiceVal <= 0) return "-";
+          const delta = betterWhenLower
+            ? ((practiceVal - reviewVal) / practiceVal) * 100
+            : ((reviewVal - practiceVal) / practiceVal) * 100;
+          const rounded = Math.round(delta);
+          return `${rounded > 0 ? "+" : ""}${rounded}%`;
+        };
+
+        const reviewAttemptedText = hasReviewStarted ? String(reviewAttempted) : "-";
+        const reviewAccuracyText = hasReviewStarted ? `${reviewAccuracy}%` : "-";
+        const reviewAvgTimeText = hasReviewStarted ? `${reviewAvgTimeSec.toFixed(1)}s` : "-";
+
+        contentEl.innerHTML = `
+          <div class="view-toggle-row">
+            <span class="toggle-label">Show numbers</span>
+            <input id="viewToggle" class="toggle" type="checkbox" aria-label="Toggle analytics view" />
+          </div>
+
+          <div id="chartView">
+            <div class="chart-wrap">
+              <div class="chart-head">
+                <div class="legend">
+                  <span class="legend-item"><span class="legend-swatch practice"></span>Practice</span>
+                  ${hasReviewStarted ? '<span class="legend-item"><span class="legend-swatch review"></span>Review</span>' : ""}
+                </div>
+              </div>
+              ${radarSvgBoth([practiceCompletion, practiceAccuracy, practiceSpeed], [reviewCompletion, reviewAccuracy, reviewSpeed], hasReviewStarted)}
+              <div class="muted" style="margin-top:0.2rem;">${hasReviewStarted ? "" : "Review graph will appear after review starts"}</div>
+            </div>
+          </div>
+
+          <div id="numbersView" class="hidden">
+            <div class="numbers-table-wrap">
+              <table class="numbers-table">
+                <thead>
+                  <tr>
+                    <th>Metric</th>
+                    <th>Practice</th>
+                    <th>Review</th>
+                    <th>Improvement</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Attempted Questions</td>
+                    <td>${practiceAttempted}</td>
+                    <td>${reviewAttemptedText}</td>
+                    <td>${hasReviewStarted ? pctChange(practiceAttempted, reviewAttempted) : "-"}</td>
+                  </tr>
+                  <tr>
+                    <td>Accuracy</td>
+                    <td>${practiceAccuracy}%</td>
+                    <td>${reviewAccuracyText}</td>
+                    <td>${hasReviewStarted ? pctChange(practiceAccuracy, reviewAccuracy) : "-"}</td>
+                  </tr>
+                  <tr>
+                    <td>Avg time</td>
+                    <td>${practiceAvgTimeSec.toFixed(1)}s</td>
+                    <td>${reviewAvgTimeText}</td>
+                    <td>${hasReviewStarted ? pctChange(practiceAvgTimeSec, reviewAvgTimeSec, true) : "-"}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+
+        const viewToggle = document.getElementById("viewToggle");
+        const chartView = document.getElementById("chartView");
+        const numbersView = document.getElementById("numbersView");
+        if (viewToggle && chartView && numbersView) {
+          viewToggle.addEventListener("change", () => {
+            const showNumbers = viewToggle.checked;
+            numbersView.classList.toggle("hidden", !showNumbers);
+            chartView.classList.toggle("hidden", showNumbers);
+          });
+        }
+      }
+    }
+  </script>
+</body>
+</html>

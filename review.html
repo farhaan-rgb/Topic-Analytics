@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Review - Teachmint</title>
+  <style>
+    :root {
+      --bg: #07080f;
+      --panel: #121528;
+      --line: #2a2f41;
+      --text: #eff2ff;
+      --muted: #a0a8c6;
+      --brand: #18b5ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Poppins", "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(160deg, #07080f 0%, #0d1223 100%);
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    .container { width: min(900px, 96vw); margin: 0 auto; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; }
+    h1 { margin: 0; font-size: clamp(1.2rem, 4vw, 1.8rem); }
+    .back {
+      border: 1px solid #3a405a;
+      background: #21263a;
+      color: #f2f4ff;
+      border-radius: 11px;
+      padding: 0.5rem 0.72rem;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 14px;
+      padding: 1rem;
+    }
+    .meta { color: var(--muted); margin-top: 0.35rem; font-size: 0.9rem; }
+    .content {
+      margin-top: 1rem;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      color: #dde2f7;
+      max-height: 70vh;
+      overflow: auto;
+    }
+    .empty { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="top">
+      <h1>Quick Review</h1>
+      <a class="back" href="index.html">Back</a>
+    </div>
+
+    <section class="panel">
+      <h2 id="title">Loading...</h2>
+      <div id="meta" class="meta"></div>
+      <div id="content" class="content"></div>
+    </section>
+  </main>
+
+  <script>
+    const SESSION_KEY = "pq_session_v1";
+    const FILES_KEY = "pq_files_v1";
+
+    const titleEl = document.getElementById("title");
+    const metaEl = document.getElementById("meta");
+    const contentEl = document.getElementById("content");
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const email = localStorage.getItem(SESSION_KEY);
+
+    function getAllFiles() {
+      try { return JSON.parse(localStorage.getItem(FILES_KEY) || "[]"); }
+      catch { return []; }
+    }
+
+    if (!email) {
+      titleEl.textContent = "Session expired";
+      metaEl.textContent = "Please login again.";
+      contentEl.className = "content empty";
+      contentEl.textContent = "Open index.html and login, then open Quick Review again.";
+    } else if (!id) {
+      titleEl.textContent = "Missing file";
+      contentEl.className = "content empty";
+      contentEl.textContent = "No file id was provided.";
+    } else {
+      const file = getAllFiles().find((f) => f.id === id && f.email === email);
+      if (!file) {
+        titleEl.textContent = "File not found";
+        contentEl.className = "content empty";
+        contentEl.textContent = "This file is not available for the current user.";
+      } else {
+        titleEl.textContent = file.name;
+        metaEl.textContent = `Uploaded: ${new Date(file.uploadedAt).toLocaleString()}`;
+        contentEl.textContent = file.text || "No readable text content found.";
+      }
+    }
+  </script>
+</body>
+</html>
