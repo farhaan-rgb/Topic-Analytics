@@ -260,6 +260,7 @@
       Array.from(optionsEl.children).forEach((node) => {
         const isAnswer = node.dataset.choice === q.answer;
         const isSelected = node.dataset.choice === selectedChoice;
+        node.classList.remove("selected");
         if (isAnswer) node.classList.add("correct");
         if (isSelected && !isAnswer) node.classList.add("wrong");
       });
