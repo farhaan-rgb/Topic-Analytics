@@ -141,7 +141,9 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const exam = (params.get("exam") || "").trim().toUpperCase();
-    const topic = (params.get("topic") || "").trim();
+    const subject = (params.get("subject") || "").trim();
+    const chapter = (params.get("chapter") || "").trim();
+    const track = (params.get("track") || "Practice").trim();
 
     const titleEl = document.getElementById("title");
     const metaEl = document.getElementById("meta");
@@ -223,15 +225,17 @@
     });
 
     const catalog = window.curriculumData && window.curriculumData.catalog ? window.curriculumData.catalog : {};
-    const isValid = exam && topic && catalog[exam] && catalog[exam].includes(topic);
+    const subjectMap = exam && catalog[exam] && typeof catalog[exam] === "object" ? catalog[exam] : null;
+    const chapters = subjectMap && subject && Array.isArray(subjectMap[subject]) ? subjectMap[subject] : null;
+    const isValid = Boolean(subjectMap && subject && chapter && chapters && chapters.includes(chapter));
     if (!isValid || !window.curriculumData || typeof window.curriculumData.generateQuestions !== "function") {
       titleEl.textContent = "Topic unavailable";
       metaEl.textContent = "";
       showEmpty("This topic is not available. Go back and try again.");
     } else {
-      titleEl.textContent = topic;
-      metaEl.textContent = `${exam} • 10 Questions`;
-      questions = window.curriculumData.generateQuestions(exam, topic, 10);
+      titleEl.textContent = chapter;
+      metaEl.textContent = `${exam} • ${subject} • ${track} • 10 Questions`;
+      questions = window.curriculumData.generateQuestions(exam, subject, chapter, track, 10);
       renderQuestion();
     }
   </script>

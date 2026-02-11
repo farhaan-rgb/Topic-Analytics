@@ -1,26 +1,101 @@
 (function () {
   const catalog = {
-    JEE: [
-      "Kinematics",
-      "Laws of Motion",
-      "Thermodynamics",
-      "Electrostatics",
-      "Organic Basics"
-    ],
-    NEET: [
-      "Human Physiology",
-      "Genetics",
-      "Cell Biology",
-      "Plant Physiology",
-      "Chemical Bonding"
-    ],
-    UPSC: [
-      "Indian Polity",
-      "Modern History",
-      "Geography",
-      "Economy",
-      "Environment"
-    ]
+    JEE: {
+      Maths: [
+        "Sets, Relations and Functions",
+        "Complex Numbers and Quadratic Equations",
+        "Matrices and Determinants",
+        "Permutations and Combinations",
+        "Binomial Theorem",
+        "Sequence and Series",
+        "Limit, Continuity and Differentiability",
+        "Integral Calculus",
+        "Differential Equations",
+        "Coordinate Geometry",
+        "Three Dimensional Geometry",
+        "Vector Algebra",
+        "Statistics and Probability",
+        "Trigonometry"
+      ],
+      Physics: [
+        "Units and Measurements",
+        "Kinematics",
+        "Laws of Motion",
+        "Work, Energy and Power",
+        "Rotational Motion",
+        "Gravitation",
+        "Thermodynamics",
+        "Oscillations and Waves",
+        "Electrostatics",
+        "Current Electricity",
+        "Magnetic Effects of Current",
+        "Electromagnetic Induction and AC",
+        "Optics",
+        "Atoms and Nuclei"
+      ],
+      Chemistry: [
+        "Some Basic Concepts in Chemistry",
+        "Atomic Structure",
+        "Chemical Bonding and Molecular Structure",
+        "Chemical Thermodynamics",
+        "Solutions",
+        "Equilibrium",
+        "Electrochemistry",
+        "Chemical Kinetics",
+        "Periodic Table and Periodicity",
+        "d and f Block Elements",
+        "Coordination Compounds",
+        "Basic Principles of Organic Chemistry",
+        "Hydrocarbons",
+        "Biomolecules"
+      ]
+    },
+    NEET: {
+      Biology: [
+        "Cell Structure",
+        "Genetics",
+        "Human Physiology",
+        "Plant Physiology",
+        "Ecology"
+      ],
+      Physics: [
+        "Kinematics",
+        "Laws of Motion",
+        "Thermodynamics",
+        "Electrostatics",
+        "Optics"
+      ],
+      Chemistry: [
+        "Atomic Structure",
+        "Chemical Bonding",
+        "Equilibrium",
+        "Organic Basics",
+        "Biomolecules"
+      ]
+    },
+    UPSC: {
+      Polity: [
+        "Constitutional Framework",
+        "Parliament",
+        "Judiciary",
+        "Federalism",
+        "Local Governance"
+      ],
+      History: [
+        "Ancient India",
+        "Medieval India",
+        "Modern India",
+        "Freedom Struggle",
+        "Post Independence India"
+      ],
+      Geography: [
+        "Physical Geography",
+        "Indian Geography",
+        "World Geography",
+        "Resources",
+        "Disaster Management"
+      ]
+    }
   };
 
   const stems = [
@@ -69,22 +144,23 @@
     return arr;
   }
 
-  function generateQuestions(exam, topic, count) {
+  function generateQuestions(exam, subject, chapter, track, count) {
     const total = Math.max(1, Number(count) || 10);
-    const rnd = seededRand(`${exam}::${topic}`);
+    const rnd = seededRand(`${exam}::${subject}::${chapter}::${track}`);
+    const levelLabel = String(track || "Practice");
     const output = [];
     for (let i = 0; i < total; i += 1) {
       const stem = stems[i % stems.length];
-      const correct = `${topic} principle ${i + 1} is applied with proper conditions.`;
+      const correct = `${chapter} principle ${i + 1} is applied with proper conditions in ${subject}.`;
       const choices = [
         correct,
-        `${wrongPrefixes[i % wrongPrefixes.length]} ${topic} never depends on context.`,
-        `${wrongPrefixes[(i + 1) % wrongPrefixes.length]} ${topic} can be solved without core assumptions.`,
-        `${wrongPrefixes[(i + 2) % wrongPrefixes.length]} ${topic} is identical to every other chapter.`
+        `${wrongPrefixes[i % wrongPrefixes.length]} ${chapter} never depends on context.`,
+        `${wrongPrefixes[(i + 1) % wrongPrefixes.length]} ${chapter} can be solved without core assumptions.`,
+        `${wrongPrefixes[(i + 2) % wrongPrefixes.length]} ${chapter} is identical to every other chapter.`
       ];
       const mixed = shuffle(choices, rnd);
       output.push({
-        prompt: `${stem} ${topic} (${exam})?`,
+        prompt: `${stem} ${chapter} (${exam} • ${subject} • ${levelLabel})?`,
         choices: mixed,
         answer: correct
       });
