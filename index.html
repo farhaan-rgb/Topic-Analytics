@@ -737,43 +737,17 @@
         <div id="emptyState" class="empty-text hidden">No uploaded files yet.</div>
       </div>
 
-      <div id="practiceTab" class="tab-pane hidden practice-tab-wrap">
-        <select id="practiceExamSelect" class="practice-select" aria-label="Select exam">
-          <option value="JEE">JEE</option>
-          <option value="NEET">NEET</option>
-          <option value="UPSC">UPSC</option>
-        </select>
-        <button id="practicePickerBtn" class="practice-picker-btn" type="button" aria-haspopup="dialog" aria-controls="chapterPickerOverlay">
-          <span>
-            <h3 id="practicePickerTitle" class="practice-picker-title"></h3>
-            <div id="practicePickerMeta" class="practice-picker-meta"></div>
-          </span>
-          <span class="practice-picker-caret">&#9660;</span>
-        </button>
-        <div id="practiceTrackList" class="practice-topic-list"></div>
-      </div>
     </section>
 
     <nav class="bottom-nav" aria-label="Bottom navigation">
       <button id="tabStudyBtn" class="bottom-btn active" type="button">Study Materials</button>
-      <button id="tabPracticeBtn" class="bottom-btn" type="button">Practice</button>
+      <button id="goPracticeBtn" class="bottom-btn" type="button">Practice</button>
     </nav>
   </main>
-
-  <div id="chapterPickerOverlay" class="picker-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="chapterPickerTitle">
-    <div class="picker-modal">
-      <div class="picker-head">
-        <h3 id="chapterPickerTitle" class="picker-title">Select Subject and Chapter</h3>
-        <button id="closeChapterPicker" class="picker-close" type="button">Close</button>
-      </div>
-      <div id="chapterPickerBody"></div>
-    </div>
-  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="supabase-client.js"></script>
-  <script src="curriculum-data.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script>
     const api = window.teachmintApi;
@@ -794,18 +768,8 @@
     const statusEl = document.getElementById("status");
     const fileGroupsEl = document.getElementById("fileGroups");
     const emptyState = document.getElementById("emptyState");
-    const studyTab = document.getElementById("studyTab");
-    const practiceTab = document.getElementById("practiceTab");
     const tabStudyBtn = document.getElementById("tabStudyBtn");
-    const tabPracticeBtn = document.getElementById("tabPracticeBtn");
-    const practiceExamSelect = document.getElementById("practiceExamSelect");
-    const practicePickerBtn = document.getElementById("practicePickerBtn");
-    const practicePickerTitle = document.getElementById("practicePickerTitle");
-    const practicePickerMeta = document.getElementById("practicePickerMeta");
-    const practiceTrackList = document.getElementById("practiceTrackList");
-    const chapterPickerOverlay = document.getElementById("chapterPickerOverlay");
-    const chapterPickerBody = document.getElementById("chapterPickerBody");
-    const closeChapterPicker = document.getElementById("closeChapterPicker");
+    const goPracticeBtn = document.getElementById("goPracticeBtn");
     const onboardingTitle = document.getElementById("onboardingTitle");
     const onboardingMeta = document.getElementById("onboardingMeta");
     const onboardingOptions = document.getElementById("onboardingOptions");
@@ -816,10 +780,6 @@
     let currentFiles = [];
     let progressByFileId = {};
     let showAnalyticsForUser = true;
-    let activeMainTab = "study";
-    let selectedPracticeExam = "JEE";
-    let selectedPracticeSubject = "";
-    let selectedPracticeChapter = "";
     let onboardingUser = null;
     let onboardingStep = 1;
     let onboardingAnswers = {
@@ -864,169 +824,9 @@
       onboardingStatus.className = `status ${type}`.trim();
     }
 
-    function setActiveTab(tab) {
-      activeMainTab = tab === "practice" ? "practice" : "study";
-      studyTab.classList.toggle("hidden", activeMainTab !== "study");
-      practiceTab.classList.toggle("hidden", activeMainTab !== "practice");
-      tabStudyBtn.classList.toggle("active", activeMainTab === "study");
-      tabPracticeBtn.classList.toggle("active", activeMainTab === "practice");
-    }
-
-    function getCurriculumTopicsForExam(exam) {
-      const source = window.curriculumData && window.curriculumData.catalog ? window.curriculumData.catalog : {};
-      const map = source && typeof source[exam] === "object" ? source[exam] : {};
-      return map && typeof map === "object" ? map : {};
-    }
-
-    function getPracticeChapterEntries() {
-      const subjectMap = getCurriculumTopicsForExam(selectedPracticeExam);
-      const out = [];
-      for (const subject of Object.keys(subjectMap)) {
-        const chapters = Array.isArray(subjectMap[subject]) ? subjectMap[subject] : [];
-        for (const chapter of chapters) {
-          out.push({ subject, chapter });
-        }
-      }
-      return out;
-    }
-
-    function ensureSelectedPracticeTopic() {
-      const subjectMap = getCurriculumTopicsForExam(selectedPracticeExam);
-      const hasSelected = Boolean(
-        selectedPracticeSubject
-        && selectedPracticeChapter
-        && Array.isArray(subjectMap[selectedPracticeSubject])
-        && subjectMap[selectedPracticeSubject].includes(selectedPracticeChapter)
-      );
-      if (hasSelected) return true;
-      const subjects = Object.keys(subjectMap);
-      if (!subjects.length) {
-        selectedPracticeSubject = "";
-        selectedPracticeChapter = "";
-        return false;
-      }
-      selectedPracticeSubject = subjects[0];
-      const chapters = Array.isArray(subjectMap[selectedPracticeSubject]) ? subjectMap[selectedPracticeSubject] : [];
-      selectedPracticeChapter = chapters[0] || "";
-      return Boolean(selectedPracticeChapter);
-    }
-
-    function renderPracticePickerButton() {
-      const ok = ensureSelectedPracticeTopic();
-      if (!ok) {
-        practicePickerTitle.textContent = "No chapter available";
-        practicePickerMeta.textContent = "";
-        practicePickerBtn.disabled = true;
-        return;
-      }
-      practicePickerBtn.disabled = false;
-      practicePickerTitle.textContent = selectedPracticeChapter;
-      practicePickerMeta.textContent = selectedPracticeSubject;
-    }
-
-    function createPracticeJourney(subject, chapter) {
-      const tracks = [
-        { id: "Easy", label: "Easy", css: "track-easy" },
-        { id: "Medium", label: "Medium", css: "track-medium" },
-        { id: "Hard", label: "Hard", css: "track-hard" },
-        { id: "PYQs", label: "PYQs", css: "track-pyqs" },
-        { id: "Test yourself", label: "Test yourself", css: "track-test" }
-      ];
-      const wrap = document.createElement("div");
-      wrap.className = "journey-wrap";
-      wrap.innerHTML = `
-        <div class="journey-stage">
-          <svg class="journey-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <polyline points="18,18 82,18 50,44 18,80 82,80" fill="none" stroke="rgba(116,194,255,0.92)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2.4 2.8"/>
-            <circle class="journey-dot" cx="18" cy="18" r="1.5"></circle>
-            <circle class="journey-dot" cx="82" cy="18" r="1.5"></circle>
-            <circle class="journey-dot" cx="50" cy="44" r="1.5"></circle>
-            <circle class="journey-dot" cx="18" cy="80" r="1.5"></circle>
-            <circle class="journey-dot" cx="82" cy="80" r="1.5"></circle>
-          </svg>
-        </div>
-      `;
-      const stage = wrap.querySelector(".journey-stage");
-      for (const track of tracks) {
-        const btn = document.createElement("button");
-        btn.className = `action-btn track-btn ${track.css}`.trim();
-        btn.type = "button";
-        btn.innerHTML = `<span class="action-icon-slot"><span class="hex practice">&#9654;</span></span><span class="action-label">${track.label}</span>`;
-        btn.addEventListener("click", () => {
-          const url = `topic-practice.html?exam=${encodeURIComponent(selectedPracticeExam)}&subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapter)}&track=${encodeURIComponent(track.id)}`;
-          window.location.href = url;
-        });
-        stage.appendChild(btn);
-      }
-      return wrap;
-    }
-
-    function openChapterPicker() {
-      const subjectMap = getCurriculumTopicsForExam(selectedPracticeExam);
-      const subjects = Object.keys(subjectMap);
-      chapterPickerBody.innerHTML = "";
-      if (!subjects.length) {
-        const msg = document.createElement("div");
-        msg.className = "practice-empty";
-        msg.textContent = "No chapter available for selected exam.";
-        chapterPickerBody.appendChild(msg);
-      } else {
-        for (const subject of subjects) {
-          const section = document.createElement("section");
-          section.className = "picker-section";
-          const heading = document.createElement("h4");
-          heading.className = "picker-subject";
-          heading.textContent = subject;
-          section.appendChild(heading);
-
-          const list = document.createElement("div");
-          list.className = "picker-chapters";
-          const chapters = Array.isArray(subjectMap[subject]) ? subjectMap[subject] : [];
-          for (const chapter of chapters) {
-            const chip = document.createElement("button");
-            chip.type = "button";
-            chip.className = `picker-chip ${subject === selectedPracticeSubject && chapter === selectedPracticeChapter ? "active" : ""}`.trim();
-            chip.textContent = chapter;
-            chip.addEventListener("click", () => {
-              selectedPracticeSubject = subject;
-              selectedPracticeChapter = chapter;
-              renderPracticePickerButton();
-              renderPracticeTopics();
-              closeChapterPickerDialog();
-            });
-            list.appendChild(chip);
-          }
-          section.appendChild(list);
-          chapterPickerBody.appendChild(section);
-        }
-      }
-      chapterPickerOverlay.classList.remove("hidden");
-    }
-
-    function closeChapterPickerDialog() {
-      chapterPickerOverlay.classList.add("hidden");
-    }
-
-    function renderPracticeTopics() {
-      practiceTrackList.innerHTML = "";
-      renderPracticePickerButton();
-      if (!selectedPracticeSubject || !selectedPracticeChapter) {
-        const msg = document.createElement("div");
-        msg.className = "practice-empty";
-        msg.textContent = "No chapter available for selected exam.";
-        practiceTrackList.appendChild(msg);
-        return;
-      }
-      const card = document.createElement("article");
-      card.className = "practice-topic-card";
-      card.innerHTML = `
-        <div class="practice-card-header">
-          <h3 class="practice-card-title">${selectedPracticeChapter}</h3>
-          <div class="practice-card-meta">${selectedPracticeSubject}</div>
-        </div>
-      `;
-      card.appendChild(createPracticeJourney(selectedPracticeSubject, selectedPracticeChapter));
-      practiceTrackList.appendChild(card);
+    function setActiveTab() {
+      tabStudyBtn.classList.add("active");
+      goPracticeBtn.classList.remove("active");
     }
 
     function displayNameWithoutExtension(fileName) {
@@ -1169,10 +969,7 @@
       currentFiles = [];
       progressByFileId = {};
       showAnalyticsForUser = true;
-      selectedPracticeExam = "JEE";
-      selectedPracticeSubject = "";
-      selectedPracticeChapter = "";
-      setActiveTab("study");
+      setActiveTab();
       onboardingUser = null;
       onboardingStep = 1;
       onboardingAnswers = { exam_target: "", daily_practice_time: "" };
@@ -1243,14 +1040,7 @@
       } catch {
         showAnalyticsForUser = false;
       }
-      const preferredExam = onboardingData && typeof onboardingData.exam_target === "string"
-        ? onboardingData.exam_target.trim().toUpperCase()
-        : "";
-      selectedPracticeExam = ["JEE", "NEET", "UPSC"].includes(preferredExam) ? preferredExam : "JEE";
-      practiceExamSelect.value = selectedPracticeExam;
-      renderPracticeTopics();
-      const tabParam = new URLSearchParams(window.location.search).get("tab");
-      setActiveTab(tabParam === "practice" ? "practice" : "study");
+      setActiveTab();
       fileSearch.value = "";
       await loadLibraryData();
       renderFiles();
@@ -1448,20 +1238,9 @@
       showAuth();
     });
 
-    tabStudyBtn.addEventListener("click", () => setActiveTab("study"));
-    tabPracticeBtn.addEventListener("click", () => setActiveTab("practice"));
-    practiceExamSelect.addEventListener("change", () => {
-      selectedPracticeExam = practiceExamSelect.value;
-      selectedPracticeSubject = "";
-      selectedPracticeChapter = "";
-      renderPracticeTopics();
-    });
-    practicePickerBtn.addEventListener("click", openChapterPicker);
-    closeChapterPicker.addEventListener("click", closeChapterPickerDialog);
-    chapterPickerOverlay.addEventListener("click", (event) => {
-      if (event.target === chapterPickerOverlay) {
-        closeChapterPickerDialog();
-      }
+    tabStudyBtn.addEventListener("click", () => setActiveTab());
+    goPracticeBtn.addEventListener("click", () => {
+      window.location.href = "practice-hub.html";
     });
 
     fileSearch.addEventListener("input", renderFiles);
