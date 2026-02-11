@@ -41,6 +41,10 @@ on conflict (user_id) do nothing;
 - Open `/Users/farhaaan/Documents/New project/ab-admin.html` (or hosted `.../ab-admin.html`).
 - Admin can add/edit feature keys and display names shown in A/B Control feature dropdown.
 
+## 8) Onboarding for new signups
+- Re-run `/Users/farhaaan/Documents/New project/supabase-schema.sql` in Supabase SQL Editor.
+- This adds `user_onboarding` table used between signup and Library page.
+
 ## Notes
 - Auth + file/progress data are now cloud-backed.
 - Local browser storage is no longer used for accounts/files/progress.

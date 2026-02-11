@@ -32,7 +32,7 @@
 
     .hidden { display: none !important; }
 
-    .auth-wrap, .app-wrap {
+    .auth-wrap, .app-wrap, .onboarding-wrap {
       width: min(600px, 94vw);
       margin: 1.1rem auto;
     }
@@ -300,8 +300,71 @@
       text-align: center;
     }
 
+    .onboard-title {
+      margin: 0;
+      font-size: clamp(1.25rem, 4.8vw, 1.95rem);
+      line-height: 1.25;
+    }
+
+    .onboard-meta {
+      margin-top: 0.4rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .onboard-options {
+      margin-top: 0.95rem;
+      display: grid;
+      gap: 0.65rem;
+    }
+
+    .onboard-option {
+      width: 100%;
+      border: 1px solid #394161;
+      border-radius: 12px;
+      background: #1c2339;
+      color: #ecf1ff;
+      text-align: left;
+      padding: 0.72rem 0.76rem;
+      cursor: pointer;
+      font: inherit;
+      transition: border-color 0.12s ease, background-color 0.12s ease;
+    }
+
+    .onboard-option:hover {
+      border-color: #6ea9eb;
+    }
+
+    .onboard-option.selected {
+      border-color: #43b4ff;
+      background: #21395e;
+      box-shadow: inset 0 0 0 1px rgba(67, 180, 255, 0.3);
+    }
+
+    .onboard-footer {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .onboard-next {
+      border: 0;
+      border-radius: 11px;
+      padding: 0.62rem 0.95rem;
+      background: linear-gradient(135deg, #18b5ff, #068cd7);
+      color: white;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .onboard-next:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
     @media (max-width: 520px) {
-      .app-wrap, .auth-wrap { width: 95vw; }
+      .app-wrap, .auth-wrap, .onboarding-wrap { width: 95vw; }
       .upload-text { font-size: 1.12rem; }
     }
   </style>
@@ -333,6 +396,18 @@
       </form>
 
       <div id="authStatus" class="status"></div>
+    </section>
+  </main>
+
+  <main class="onboarding-wrap hidden" id="onboardingRoot">
+    <section class="panel">
+      <h2 id="onboardingTitle" class="onboard-title">Let's personalize your journey</h2>
+      <div id="onboardingMeta" class="onboard-meta">Step 1 of 2</div>
+      <div id="onboardingOptions" class="onboard-options"></div>
+      <div class="onboard-footer">
+        <button id="onboardingNext" class="onboard-next" type="button" disabled>Continue</button>
+      </div>
+      <div id="onboardingStatus" class="status"></div>
     </section>
   </main>
 
@@ -381,6 +456,7 @@
     const api = window.teachmintApi;
 
     const authRoot = document.getElementById("authRoot");
+    const onboardingRoot = document.getElementById("onboardingRoot");
     const appRoot = document.getElementById("appRoot");
     const authForm = document.getElementById("authForm");
     const authEmail = document.getElementById("authEmail");
@@ -395,11 +471,35 @@
     const statusEl = document.getElementById("status");
     const fileGroupsEl = document.getElementById("fileGroups");
     const emptyState = document.getElementById("emptyState");
+    const onboardingTitle = document.getElementById("onboardingTitle");
+    const onboardingMeta = document.getElementById("onboardingMeta");
+    const onboardingOptions = document.getElementById("onboardingOptions");
+    const onboardingNext = document.getElementById("onboardingNext");
+    const onboardingStatus = document.getElementById("onboardingStatus");
 
     let currentUser = null;
     let currentFiles = [];
     let progressByFileId = {};
     let showAnalyticsForUser = true;
+    let onboardingUser = null;
+    let onboardingStep = 1;
+    let onboardingAnswers = {
+      exam_target: "",
+      daily_practice_time: ""
+    };
+
+    const onboardingSteps = [
+      {
+        key: "exam_target",
+        title: "What are you preparing for?",
+        options: ["JEE", "NEET", "UPSC"]
+      },
+      {
+        key: "daily_practice_time",
+        title: "How much are you willing to spend on practice everyday?",
+        options: ["Less than 2 hours", "2 to 6 hours", "More than 6 hours"]
+      }
+    ];
 
     const stopWords = new Set([
       "the", "and", "for", "with", "that", "this", "from", "into", "your", "their", "there", "which", "about", "were", "when", "where",
@@ -418,6 +518,11 @@
     function setAuthStatus(message, type = "") {
       authStatusEl.textContent = message;
       authStatusEl.className = `status ${type}`.trim();
+    }
+
+    function setOnboardingStatus(message, type = "") {
+      onboardingStatus.textContent = message;
+      onboardingStatus.className = `status ${type}`.trim();
     }
 
     function displayNameWithoutExtension(fileName) {
@@ -550,6 +655,7 @@
     }
 
     function showAuth() {
+      onboardingRoot.classList.add("hidden");
       appRoot.classList.add("hidden");
       authRoot.classList.remove("hidden");
       authForm.reset();
@@ -559,6 +665,46 @@
       currentFiles = [];
       progressByFileId = {};
       showAnalyticsForUser = true;
+      onboardingUser = null;
+      onboardingStep = 1;
+      onboardingAnswers = { exam_target: "", daily_practice_time: "" };
+    }
+
+    function renderOnboardingStep() {
+      const step = onboardingSteps[onboardingStep - 1];
+      if (!step) return;
+      onboardingTitle.textContent = step.title;
+      onboardingMeta.textContent = `Step ${onboardingStep} of ${onboardingSteps.length}`;
+      onboardingNext.textContent = onboardingStep === onboardingSteps.length ? "Finish" : "Continue";
+      onboardingNext.disabled = !onboardingAnswers[step.key];
+      onboardingOptions.innerHTML = "";
+      for (const option of step.options) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        const selected = onboardingAnswers[step.key] === option;
+        btn.className = `onboard-option ${selected ? "selected" : ""}`.trim();
+        btn.textContent = option;
+        btn.addEventListener("click", () => {
+          onboardingAnswers[step.key] = option;
+          renderOnboardingStep();
+        });
+        onboardingOptions.appendChild(btn);
+      }
+    }
+
+    function showOnboarding(user, existingOnboarding) {
+      currentUser = user;
+      onboardingUser = user;
+      authRoot.classList.add("hidden");
+      appRoot.classList.add("hidden");
+      onboardingRoot.classList.remove("hidden");
+      onboardingAnswers = {
+        exam_target: existingOnboarding && existingOnboarding.exam_target ? existingOnboarding.exam_target : "",
+        daily_practice_time: existingOnboarding && existingOnboarding.daily_practice_time ? existingOnboarding.daily_practice_time : ""
+      };
+      onboardingStep = onboardingAnswers.exam_target ? 2 : 1;
+      setOnboardingStatus("");
+      renderOnboardingStep();
     }
 
     async function loadLibraryData() {
@@ -581,6 +727,7 @@
     async function showApp(user) {
       currentUser = user;
       authRoot.classList.add("hidden");
+      onboardingRoot.classList.add("hidden");
       appRoot.classList.remove("hidden");
       welcomeText.textContent = `Signed in as ${user.email || "user"}`;
       try {
@@ -592,6 +739,20 @@
       await loadLibraryData();
       renderFiles();
       setStatus("");
+    }
+
+    async function routeAfterLogin(user, isNewSignup = false) {
+      let onboarding = null;
+      try {
+        onboarding = await api.getUserOnboarding(user.id);
+      } catch {}
+      const needsOnboarding = (isNewSignup && (!onboarding || !onboarding.completed_at))
+        || Boolean(onboarding && !onboarding.completed_at);
+      if (needsOnboarding) {
+        showOnboarding(user, onboarding);
+        return;
+      }
+      await showApp(user);
     }
 
     function getAttemptedCount(fileId) {
@@ -719,9 +880,46 @@
         }
         authForm.reset();
         setAuthStatus(result.created ? "Account created and signed in." : "", result.created ? "ok" : "");
-        await showApp(result.user);
+        await routeAfterLogin(result.user, result.created);
       } catch (err) {
         setAuthStatus(err.message || "Login failed.", "error");
+      }
+    });
+
+    onboardingNext.addEventListener("click", async () => {
+      if (!api || !api.isConfigured() || !onboardingUser) return;
+      const step = onboardingSteps[onboardingStep - 1];
+      if (!step || !onboardingAnswers[step.key]) return;
+
+      onboardingNext.disabled = true;
+      setOnboardingStatus("");
+      try {
+        if (onboardingStep === 1) {
+          await api.upsertUserOnboarding(onboardingUser.id, {
+            exam_target: onboardingAnswers.exam_target,
+            daily_practice_time: onboardingAnswers.daily_practice_time || null,
+            completed_at: null
+          });
+          onboardingStep = 2;
+          renderOnboardingStep();
+          return;
+        }
+
+        await api.upsertUserOnboarding(onboardingUser.id, {
+          exam_target: onboardingAnswers.exam_target,
+          daily_practice_time: onboardingAnswers.daily_practice_time,
+          completed_at: new Date().toISOString()
+        });
+        await showApp(onboardingUser);
+      } catch (err) {
+        setOnboardingStatus(err.message || "Could not save onboarding. Try again.", "error");
+      } finally {
+        if (onboardingRoot.classList.contains("hidden")) {
+          onboardingNext.disabled = false;
+        } else {
+          const currentStep = onboardingSteps[onboardingStep - 1];
+          onboardingNext.disabled = !currentStep || !onboardingAnswers[currentStep.key];
+        }
       }
     });
 
@@ -794,7 +992,7 @@
       try {
         const user = await api.getCurrentUser();
         if (user) {
-          await showApp(user);
+          await routeAfterLogin(user, false);
         } else {
           showAuth();
         }

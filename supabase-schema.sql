@@ -45,11 +45,20 @@ create table if not exists public.ab_features (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.user_onboarding (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  exam_target text,
+  daily_practice_time text,
+  completed_at timestamptz,
+  updated_at timestamptz not null default now()
+);
+
 alter table public.files enable row level security;
 alter table public.file_progress enable row level security;
 alter table public.ab_test_configs enable row level security;
 alter table public.app_admins enable row level security;
 alter table public.ab_features enable row level security;
+alter table public.user_onboarding enable row level security;
 
 drop policy if exists "users_manage_own_files" on public.files;
 create policy "users_manage_own_files"
@@ -96,6 +105,13 @@ on public.ab_features
 for all
 using (exists (select 1 from public.app_admins a where a.user_id = auth.uid()))
 with check (exists (select 1 from public.app_admins a where a.user_id = auth.uid()));
+
+drop policy if exists "users_manage_own_onboarding" on public.user_onboarding;
+create policy "users_manage_own_onboarding"
+on public.user_onboarding
+for all
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
 
 insert into public.ab_test_configs (feature_key, test_percent, is_enabled)
 values ('analytics_library', 100, true)

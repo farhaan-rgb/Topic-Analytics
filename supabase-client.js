@@ -289,6 +289,35 @@
     return data;
   }
 
+  async function getUserOnboarding(userId) {
+    const supa = getClient();
+    const { data, error } = await supa
+      .from("user_onboarding")
+      .select("user_id,exam_target,daily_practice_time,completed_at,updated_at")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
+  async function upsertUserOnboarding(userId, patch) {
+    const supa = getClient();
+    const payload = {
+      user_id: userId,
+      exam_target: patch && patch.exam_target ? String(patch.exam_target) : null,
+      daily_practice_time: patch && patch.daily_practice_time ? String(patch.daily_practice_time) : null,
+      completed_at: patch && patch.completed_at ? patch.completed_at : null,
+      updated_at: new Date().toISOString()
+    };
+    const { data, error } = await supa
+      .from("user_onboarding")
+      .upsert(payload, { onConflict: "user_id" })
+      .select("user_id,exam_target,daily_practice_time,completed_at,updated_at")
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
   window.teachmintApi = {
     isConfigured,
     getCurrentUser,
@@ -306,6 +335,8 @@
     isUserInRollout,
     isCurrentUserAdmin,
     listAbFeatures,
-    upsertAbFeature
+    upsertAbFeature,
+    getUserOnboarding,
+    upsertUserOnboarding
   };
 })();
