@@ -32,9 +32,24 @@ create table if not exists public.ab_test_configs (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.app_admins (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.ab_features (
+  feature_key text primary key,
+  display_name text not null,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.files enable row level security;
 alter table public.file_progress enable row level security;
 alter table public.ab_test_configs enable row level security;
+alter table public.app_admins enable row level security;
+alter table public.ab_features enable row level security;
 
 drop policy if exists "users_manage_own_files" on public.files;
 create policy "users_manage_own_files"
@@ -63,6 +78,32 @@ for all
 using (auth.role() = 'authenticated')
 with check (auth.role() = 'authenticated');
 
+drop policy if exists "users_view_own_admin_row" on public.app_admins;
+create policy "users_view_own_admin_row"
+on public.app_admins
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "read_ab_features_authenticated" on public.ab_features;
+create policy "read_ab_features_authenticated"
+on public.ab_features
+for select
+using (auth.role() = 'authenticated');
+
+drop policy if exists "admins_write_ab_features" on public.ab_features;
+create policy "admins_write_ab_features"
+on public.ab_features
+for all
+using (exists (select 1 from public.app_admins a where a.user_id = auth.uid()))
+with check (exists (select 1 from public.app_admins a where a.user_id = auth.uid()));
+
 insert into public.ab_test_configs (feature_key, test_percent, is_enabled)
 values ('analytics_library', 100, true)
 on conflict (feature_key) do nothing;
+
+insert into public.ab_features (feature_key, display_name, is_active)
+values ('analytics_library', 'Analytics (Library)', true)
+on conflict (feature_key) do update
+set display_name = excluded.display_name,
+    is_active = excluded.is_active,
+    updated_at = now();

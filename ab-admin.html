@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A/B Admin - Teachmint</title>
+  <style>
+    :root {
+      --bg: #090f1d;
+      --panel: #171f35;
+      --line: #33436b;
+      --text: #eef3ff;
+      --muted: #aab6d8;
+      --ok: #45d39a;
+      --danger: #ff799f;
+      --brand: #2f9bf0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Poppins", "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(165deg, #0a1020 0%, #121d36 100%);
+      padding: 1rem;
+    }
+    .container { width: min(860px, 96vw); margin: 0 auto; }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 0.9rem;
+    }
+    .back {
+      border: 1px solid #45507b;
+      background: #1b2238;
+      color: #f1f4ff;
+      border-radius: 11px;
+      padding: 0.48rem 0.72rem;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      padding: 1rem;
+    }
+    h1 { margin: 0; font-size: clamp(1.2rem, 4vw, 1.7rem); }
+    h2 { margin: 0; font-size: 1.2rem; }
+    .muted { color: var(--muted); margin-top: 0.35rem; }
+    .status { min-height: 1.1rem; margin-top: 0.85rem; font-size: 0.93rem; }
+    .status.error { color: var(--danger); }
+    .status.ok { color: var(--ok); }
+    .blocked {
+      margin-top: 0.8rem;
+      border: 1px solid rgba(140, 96, 126, 0.4);
+      border-radius: 12px;
+      padding: 0.75rem;
+      background: rgba(60, 25, 44, 0.45);
+      color: #f4cde0;
+    }
+    .form {
+      margin-top: 0.9rem;
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .form .full { grid-column: 1 / -1; }
+    label {
+      display: block;
+      color: #dce4ff;
+      font-size: 0.9rem;
+      margin-bottom: 0.35rem;
+    }
+    input[type="text"],
+    select {
+      width: 100%;
+      border: 1px solid #4a5d93;
+      border-radius: 10px;
+      background: #1f2847;
+      color: #f2f6ff;
+      padding: 0.65rem 0.7rem;
+      font: inherit;
+    }
+    .btn {
+      border: 0;
+      border-radius: 11px;
+      padding: 0.62rem 0.9rem;
+      background: linear-gradient(135deg, #2f9bf0, #2377bc);
+      color: white;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      margin-top: 1rem;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      border: 1px solid rgba(116, 132, 187, 0.4);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      border-bottom: 1px solid rgba(116, 132, 187, 0.3);
+      padding: 0.55rem 0.6rem;
+      text-align: left;
+      vertical-align: middle;
+    }
+    th {
+      background: rgba(26, 36, 64, 0.85);
+      color: #d9e2ff;
+      font-size: 0.82rem;
+      letter-spacing: 0.02em;
+    }
+    tr:last-child td { border-bottom: 0; }
+    .pill {
+      display: inline-block;
+      padding: 0.16rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .pill.on {
+      background: rgba(67, 198, 140, 0.25);
+      color: #8bf1bf;
+      border: 1px solid rgba(67, 198, 140, 0.4);
+    }
+    .pill.off {
+      background: rgba(164, 172, 196, 0.2);
+      color: #d5def8;
+      border: 1px solid rgba(164, 172, 196, 0.35);
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="top">
+      <h1>A/B Admin</h1>
+      <a class="back" href="ab-control.html">Back</a>
+    </div>
+
+    <section class="panel">
+      <h2>Feature Catalog</h2>
+      <div class="muted">Only admin users can add or edit features shown in A/B Control.</div>
+
+      <div id="blocked" class="blocked hidden">You are not authorized to manage feature catalog.</div>
+
+      <div id="adminArea" class="hidden">
+        <form id="featureForm" class="form">
+          <div>
+            <label for="featureKey">Feature key</label>
+            <input id="featureKey" type="text" placeholder="e.g. analytics_library" required />
+          </div>
+          <div>
+            <label for="displayName">Display name</label>
+            <input id="displayName" type="text" placeholder="e.g. Analytics (Library)" required />
+          </div>
+          <div>
+            <label for="isActive">Status</label>
+            <select id="isActive">
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
+            </select>
+          </div>
+          <div class="full">
+            <button id="saveBtn" class="btn" type="submit">Save Feature</button>
+          </div>
+        </form>
+
+        <div id="status" class="status"></div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Feature Key</th>
+              <th>Display Name</th>
+              <th>Status</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+          <tbody id="featureRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    const api = window.teachmintApi;
+
+    const blockedEl = document.getElementById("blocked");
+    const adminAreaEl = document.getElementById("adminArea");
+    const featureForm = document.getElementById("featureForm");
+    const featureKeyEl = document.getElementById("featureKey");
+    const displayNameEl = document.getElementById("displayName");
+    const isActiveEl = document.getElementById("isActive");
+    const saveBtn = document.getElementById("saveBtn");
+    const statusEl = document.getElementById("status");
+    const featureRowsEl = document.getElementById("featureRows");
+
+    function setStatus(message, type = "") {
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`.trim();
+    }
+
+    function fmtDate(iso) {
+      if (!iso) return "-";
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return "-";
+      return d.toLocaleString();
+    }
+
+    function renderRows(features) {
+      featureRowsEl.innerHTML = "";
+      if (!features.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = '<td colspan="4">No features yet.</td>';
+        featureRowsEl.appendChild(tr);
+        return;
+      }
+      for (const feature of features) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${feature.feature_key}</td>
+          <td>${feature.display_name || ""}</td>
+          <td><span class="pill ${feature.is_active ? "on" : "off"}">${feature.is_active ? "Active" : "Inactive"}</span></td>
+          <td>${fmtDate(feature.updated_at || feature.created_at)}</td>
+        `;
+        tr.addEventListener("click", () => {
+          featureKeyEl.value = feature.feature_key;
+          displayNameEl.value = feature.display_name || "";
+          isActiveEl.value = feature.is_active ? "true" : "false";
+          featureKeyEl.focus();
+        });
+        featureRowsEl.appendChild(tr);
+      }
+    }
+
+    async function loadFeatures() {
+      const features = await api.listAbFeatures(false);
+      renderRows(features);
+    }
+
+    featureForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const featureKey = featureKeyEl.value;
+      const displayName = displayNameEl.value;
+      const isActive = isActiveEl.value === "true";
+
+      saveBtn.disabled = true;
+      setStatus("");
+      try {
+        await api.upsertAbFeature(featureKey, displayName, isActive);
+        setStatus("Feature saved.", "ok");
+        await loadFeatures();
+      } catch (err) {
+        setStatus(err.message || "Save failed.", "error");
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    async function init() {
+      if (!api || !api.isConfigured()) {
+        blockedEl.classList.remove("hidden");
+        blockedEl.textContent = "Supabase is not configured.";
+        return;
+      }
+
+      let user = null;
+      try {
+        user = await api.getCurrentUser();
+      } catch (err) {
+        blockedEl.classList.remove("hidden");
+        blockedEl.textContent = err.message || "Could not validate session.";
+        return;
+      }
+
+      if (!user) {
+        blockedEl.classList.remove("hidden");
+        blockedEl.textContent = "Please login first.";
+        return;
+      }
+
+      let isAdmin = false;
+      try {
+        isAdmin = await api.isCurrentUserAdmin(user.id);
+      } catch (err) {
+        blockedEl.classList.remove("hidden");
+        blockedEl.textContent = err.message || "Could not verify admin access.";
+        return;
+      }
+
+      if (!isAdmin) {
+        blockedEl.classList.remove("hidden");
+        return;
+      }
+
+      adminAreaEl.classList.remove("hidden");
+      await loadFeatures();
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -28,6 +28,19 @@
 - Select feature and set `% of users in test`.
 - Save changes. Teachmint app will pick this config for feature rollout.
 
+## 7) Admin-only feature catalog
+- Re-run `/Users/farhaaan/Documents/New project/supabase-schema.sql` in Supabase SQL Editor.
+- Add your admin UID:
+
+```sql
+insert into public.app_admins (user_id)
+values ('REPLACE_WITH_ADMIN_UID')
+on conflict (user_id) do nothing;
+```
+
+- Open `/Users/farhaaan/Documents/New project/ab-admin.html` (or hosted `.../ab-admin.html`).
+- Admin can add/edit feature keys and display names shown in A/B Control feature dropdown.
+
 ## Notes
 - Auth + file/progress data are now cloud-backed.
 - Local browser storage is no longer used for accounts/files/progress.

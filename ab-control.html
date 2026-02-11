@@ -127,9 +127,7 @@
       <div class="form-grid">
         <div>
           <label for="featureSelect">Feature</label>
-          <select id="featureSelect">
-            <option value="analytics_library">Analytics (Library)</option>
-          </select>
+          <select id="featureSelect"></select>
         </div>
 
         <div>
@@ -185,6 +183,16 @@
       summaryEl.textContent = `Current setting: ${feature} is enabled for ${percent}% users (deterministic user split).`;
     }
 
+    function setFeatureOptions(features) {
+      featureSelect.innerHTML = "";
+      for (const feature of features) {
+        const opt = document.createElement("option");
+        opt.value = feature.feature_key;
+        opt.textContent = feature.display_name || feature.feature_key;
+        featureSelect.appendChild(opt);
+      }
+    }
+
     percentInput.addEventListener("input", () => {
       syncPercent(percentInput.value);
     });
@@ -200,6 +208,10 @@
       }
 
       const feature = featureSelect.value;
+      if (!feature) {
+        setStatus("No feature available. Ask admin to add one.", "error");
+        return;
+      }
       const percent = syncPercent(percentNumber.value);
 
       saveBtn.disabled = true;
@@ -221,8 +233,21 @@
         return;
       }
 
-      const feature = featureSelect.value;
       try {
+        const features = await api.listAbFeatures(true);
+        if (!features.length) {
+          setFeatureOptions([]);
+          summaryEl.textContent = "No active features available. Add features from A/B Admin page.";
+          saveBtn.disabled = true;
+          return;
+        }
+        saveBtn.disabled = false;
+        const prevSelected = featureSelect.value;
+        setFeatureOptions(features);
+        if (prevSelected && features.some((f) => f.feature_key === prevSelected)) {
+          featureSelect.value = prevSelected;
+        }
+        const feature = featureSelect.value;
         const cfg = await api.getAbTestConfig(feature);
         const percent = cfg ? clampPercent(cfg.test_percent) : 100;
         syncPercent(percent);

@@ -181,6 +181,14 @@
     return Math.max(0, Math.min(100, Math.round(n)));
   }
 
+  function normalizeFeatureKey(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+  }
+
   function hashToBucket(input) {
     const text = String(input || "");
     let h = 2166136261;
@@ -199,22 +207,26 @@
   }
 
   async function getAbTestConfig(featureKey) {
+    const key = normalizeFeatureKey(featureKey);
+    if (!key) throw new Error("Feature key is required.");
     const supa = getClient();
     const { data, error } = await supa
       .from("ab_test_configs")
       .select("feature_key,test_percent,is_enabled,updated_at")
-      .eq("feature_key", featureKey)
+      .eq("feature_key", key)
       .maybeSingle();
     if (error) throw error;
     return data || null;
   }
 
   async function upsertAbTestConfig(featureKey, testPercent, enabled = true) {
+    const key = normalizeFeatureKey(featureKey);
+    if (!key) throw new Error("Feature key is required.");
     const supa = getClient();
     const { data, error } = await supa
       .from("ab_test_configs")
       .upsert({
-        feature_key: String(featureKey),
+        feature_key: key,
         test_percent: normalizePercent(testPercent),
         is_enabled: Boolean(enabled),
         updated_at: new Date().toISOString()
@@ -232,6 +244,51 @@
     return isUserInRollout(userId, cfg.test_percent);
   }
 
+  async function isCurrentUserAdmin(userId) {
+    const supa = getClient();
+    const { data, error } = await supa
+      .from("app_admins")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw error;
+    return Boolean(data && data.user_id);
+  }
+
+  async function listAbFeatures(activeOnly = true) {
+    const supa = getClient();
+    let q = supa
+      .from("ab_features")
+      .select("feature_key,display_name,is_active,created_at,updated_at")
+      .order("display_name", { ascending: true });
+    if (activeOnly) {
+      q = q.eq("is_active", true);
+    }
+    const { data, error } = await q;
+    if (error) throw error;
+    return Array.isArray(data) ? data : [];
+  }
+
+  async function upsertAbFeature(featureKey, displayName, isActive = true) {
+    const key = normalizeFeatureKey(featureKey);
+    const name = String(displayName || "").trim();
+    if (!key) throw new Error("Feature key is required.");
+    if (!name) throw new Error("Display name is required.");
+    const supa = getClient();
+    const { data, error } = await supa
+      .from("ab_features")
+      .upsert({
+        feature_key: key,
+        display_name: name,
+        is_active: Boolean(isActive),
+        updated_at: new Date().toISOString()
+      }, { onConflict: "feature_key" })
+      .select("feature_key,display_name,is_active,created_at,updated_at")
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
   window.teachmintApi = {
     isConfigured,
     getCurrentUser,
@@ -246,6 +303,9 @@
     getAbTestConfig,
     upsertAbTestConfig,
     isFeatureEnabledForUser,
-    isUserInRollout
+    isUserInRollout,
+    isCurrentUserAdmin,
+    listAbFeatures,
+    upsertAbFeature
   };
 })();
