@@ -19,6 +19,7 @@
       min-height: 100vh;
       padding-bottom: 86px;
     }
+    .hidden { display: none !important; }
     .app-wrap {
       width: min(600px, 94vw);
       margin: 1.1rem auto;
@@ -76,7 +77,19 @@
     .exam-select-wrap {
       position: relative;
     }
-    .exam-select-wrap::after {
+    .exam-trigger {
+      width: 100%;
+      border: 1px solid #3f4f77;
+      border-radius: 11px;
+      background: #1b2642;
+      color: #eef3ff;
+      padding: 0.66rem 2rem 0.66rem 0.72rem;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      position: relative;
+    }
+    .exam-trigger::after {
       content: "";
       position: absolute;
       right: 0.68rem;
@@ -86,20 +99,35 @@
       border-right: 2px solid #9cb2de;
       border-bottom: 2px solid #9cb2de;
       transform: translateY(-65%) rotate(45deg);
-      pointer-events: none;
       opacity: 0.9;
     }
-    .exam-select {
-      width: 100%;
-      border: 1px solid #3f4f77;
+    .exam-menu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 0.38rem);
+      z-index: 8;
+      border: 1px solid #425585;
       border-radius: 11px;
-      background: #1b2642;
-      color: #eef3ff;
-      padding: 0.66rem 2rem 0.66rem 0.72rem;
+      background: #182238;
+      padding: 0.25rem;
+      box-shadow: 0 12px 22px rgba(0, 0, 0, 0.34);
+    }
+    .exam-option {
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #eaf0ff;
+      text-align: left;
+      padding: 0.48rem 0.5rem;
       font: inherit;
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
+      cursor: pointer;
+    }
+    .exam-option:hover,
+    .exam-option.active {
+      background: #243458;
+      color: #fff;
     }
     .tests-list {
       display: grid;
@@ -171,6 +199,113 @@
       font-size: 0.82rem;
       min-height: 1rem;
     }
+    .module-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 32;
+      background: rgba(4, 7, 12, 0.74);
+      display: grid;
+      place-items: center;
+      padding: 0.9rem;
+    }
+    .module-card {
+      width: min(760px, 96vw);
+      max-height: 92vh;
+      overflow: auto;
+      border: 1px solid #314875;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #123055 0%, #0d213a 32%, #08111f 100%);
+      padding: 0.9rem;
+    }
+    .module-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 0.7rem;
+    }
+    .module-close {
+      border: 1px solid #4a6380;
+      background: rgba(16, 34, 56, 0.85);
+      color: #eef4ff;
+      border-radius: 11px;
+      padding: 0.46rem 0.66rem;
+      font: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .module-progress {
+      color: #c7d5e9;
+      font-size: 0.95rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .module-topic {
+      border: 1px solid rgba(167, 196, 228, 0.2);
+      background: linear-gradient(180deg, rgba(29, 66, 106, 0.85), rgba(21, 47, 75, 0.85));
+      border-radius: 14px;
+      padding: 0.95rem;
+      margin-bottom: 0.95rem;
+    }
+    .module-topic h3 {
+      margin: 0;
+      font-size: clamp(1.12rem, 3.8vw, 1.45rem);
+      line-height: 1.25;
+    }
+    .module-meta { margin-top: 0.35rem; color: #a8b5ca; font-size: 0.9rem; }
+    .module-q {
+      margin: 0 0 0.95rem;
+      font-size: clamp(1.25rem, 4.1vw, 1.85rem);
+      font-weight: 600;
+      line-height: 1.27;
+      color: #f6f8ff;
+    }
+    .module-options { display: grid; gap: 0.68rem; }
+    .module-opt {
+      width: 100%;
+      text-align: left;
+      border: 1px solid #3b4f66;
+      border-radius: 13px;
+      background: #26384c;
+      color: #edf2ff;
+      padding: 0.78rem 0.82rem;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.72rem;
+      font: inherit;
+      font-size: 0.98rem;
+    }
+    .module-tag {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #41566e;
+      color: #ecf3ff;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .module-opt.selected { border-color: #8ec3ff; background: #30465e; }
+    .module-opt.correct { border-color: #4ad69f; background: #20483f; }
+    .module-opt.wrong { border-color: #ff7fa3; background: #4a2734; }
+    .module-actions {
+      margin-top: 0.9rem;
+      display: flex;
+      justify-content: center;
+    }
+    .module-action {
+      border: 0;
+      border-radius: 10px;
+      padding: 0.55rem 0.9rem;
+      cursor: pointer;
+      background: #2a7ac2;
+      color: white;
+      font-weight: 600;
+      font: inherit;
+    }
+    .module-action:disabled { opacity: 0.55; cursor: not-allowed; }
     .bottom-nav {
       position: fixed;
       left: 0;
@@ -226,17 +361,38 @@
       <div class="exam-shell">
         <div class="exam-label">Exam</div>
         <div class="exam-select-wrap">
-          <select id="examSelect" class="exam-select" aria-label="Select exam">
-            <option value="JEE">JEE</option>
-            <option value="NEET">NEET</option>
-            <option value="UPSC">UPSC</option>
-          </select>
+          <button id="examTrigger" class="exam-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">JEE</button>
+          <div id="examMenu" class="exam-menu hidden" role="listbox" aria-label="Select exam">
+            <button class="exam-option" data-exam="JEE" type="button">JEE</button>
+            <button class="exam-option" data-exam="NEET" type="button">NEET</button>
+            <button class="exam-option" data-exam="UPSC" type="button">UPSC</button>
+          </div>
         </div>
       </div>
 
       <div id="testsList" class="tests-list"></div>
     </section>
   </main>
+
+  <div id="testModuleOverlay" class="module-overlay hidden">
+    <div class="module-card">
+      <div class="module-top">
+        <button id="closeModuleBtn" class="module-close" type="button">Back</button>
+        <div id="moduleProgress" class="module-progress">Question 0 / 0</div>
+      </div>
+      <section class="module-topic">
+        <h3 id="moduleTitle">Loading...</h3>
+        <div id="moduleMeta" class="module-meta"></div>
+      </section>
+      <section id="moduleQuiz">
+        <p id="moduleQuestion" class="module-q"></p>
+        <div id="moduleOptions" class="module-options"></div>
+        <div class="module-actions">
+          <button id="moduleActionBtn" class="module-action" type="button" disabled>Check Answer</button>
+        </div>
+      </section>
+    </div>
+  </div>
 
   <nav class="bottom-nav" aria-label="Bottom navigation">
     <button id="goStudyBtn" class="bottom-btn" type="button">Study Materials</button>
@@ -250,12 +406,22 @@
   <script>
     const api = window.teachmintApi;
 
-    const examSelect = document.getElementById("examSelect");
+    const examTrigger = document.getElementById("examTrigger");
+    const examMenu = document.getElementById("examMenu");
+    const examOptions = Array.from(document.querySelectorAll(".exam-option"));
     const testsList = document.getElementById("testsList");
     const welcomeText = document.getElementById("welcomeText");
     const logoutBtn = document.getElementById("logoutBtn");
     const goStudyBtn = document.getElementById("goStudyBtn");
     const goPracticeBtn = document.getElementById("goPracticeBtn");
+    const testModuleOverlay = document.getElementById("testModuleOverlay");
+    const closeModuleBtn = document.getElementById("closeModuleBtn");
+    const moduleProgress = document.getElementById("moduleProgress");
+    const moduleTitle = document.getElementById("moduleTitle");
+    const moduleMeta = document.getElementById("moduleMeta");
+    const moduleQuestion = document.getElementById("moduleQuestion");
+    const moduleOptions = document.getElementById("moduleOptions");
+    const moduleActionBtn = document.getElementById("moduleActionBtn");
 
     const testTemplates = {
       JEE: [
@@ -278,6 +444,26 @@
     const runningTimers = {};
     const remainingSeconds = {};
     let currentUser = null;
+    let selectedExam = "JEE";
+    let activeTest = null;
+    let moduleQuestions = [];
+    let moduleIndex = 0;
+    let moduleSelectedChoice = null;
+    let moduleEvaluated = false;
+    const optionTags = ["A", "B", "C", "D", "E", "F"];
+
+    function syncExamDropdown() {
+      examTrigger.textContent = selectedExam;
+      examTrigger.setAttribute("aria-expanded", examMenu.classList.contains("hidden") ? "false" : "true");
+      for (const option of examOptions) {
+        option.classList.toggle("active", option.dataset.exam === selectedExam);
+      }
+    }
+
+    function closeExamMenu() {
+      examMenu.classList.add("hidden");
+      syncExamDropdown();
+    }
 
     function formatTime(totalSec) {
       const sec = Math.max(0, Number(totalSec) || 0);
@@ -294,7 +480,7 @@
     }
 
     function renderTests() {
-      const exam = examSelect.value;
+      const exam = selectedExam;
       const tests = Array.isArray(testTemplates[exam]) ? testTemplates[exam] : [];
       testsList.innerHTML = "";
       for (const t of tests) {
@@ -318,7 +504,7 @@
             <div class="${timerClass}" id="timer-${t.id}">${timerText}</div>
           </div>
           <div class="test-actions">
-            <button class="test-btn primary" type="button" id="start-${t.id}">${live ? "Running" : "Start Test"}</button>
+            <button class="test-btn primary" type="button" id="create-${t.id}">${live ? "Resume Test" : "Create Test"}</button>
             <button class="test-btn" type="button" id="reset-${t.id}">Reset</button>
             <span class="status-note" id="note-${t.id}">${live ? "Timer is running..." : "Ready to start."}</span>
           </div>
@@ -326,30 +512,35 @@
         testsList.appendChild(card);
 
         const timerEl = card.querySelector(`#timer-${t.id}`);
-        const startBtn = card.querySelector(`#start-${t.id}`);
+        const createBtn = card.querySelector(`#create-${t.id}`);
         const resetBtn = card.querySelector(`#reset-${t.id}`);
         const noteEl = card.querySelector(`#note-${t.id}`);
 
-        startBtn.disabled = live;
-        startBtn.addEventListener("click", () => {
-          if (runningTimers[t.id] || remainingSeconds[t.id] <= 0) return;
-          startBtn.disabled = true;
-          startBtn.textContent = "Running";
-          timerEl.classList.add("live");
-          noteEl.textContent = "Timer is running...";
-          runningTimers[t.id] = setInterval(() => {
-            remainingSeconds[t.id] -= 1;
-            timerEl.textContent = formatTime(remainingSeconds[t.id]);
-            if (remainingSeconds[t.id] <= 0) {
-              stopTimer(t.id);
-              remainingSeconds[t.id] = 0;
-              startBtn.disabled = true;
-              startBtn.textContent = "Completed";
-              timerEl.classList.remove("live");
-              noteEl.textContent = "Time up. Test completed.";
-              timerEl.textContent = "00:00";
-            }
-          }, 1000);
+        createBtn.disabled = remainingSeconds[t.id] <= 0;
+        createBtn.addEventListener("click", () => {
+          if (remainingSeconds[t.id] <= 0) return;
+          if (!runningTimers[t.id]) {
+            timerEl.classList.add("live");
+            noteEl.textContent = "Timer is running...";
+            runningTimers[t.id] = setInterval(() => {
+              remainingSeconds[t.id] -= 1;
+              timerEl.textContent = formatTime(remainingSeconds[t.id]);
+              if (remainingSeconds[t.id] <= 0) {
+                stopTimer(t.id);
+                remainingSeconds[t.id] = 0;
+                createBtn.disabled = true;
+                createBtn.textContent = "Completed";
+                timerEl.classList.remove("live");
+                noteEl.textContent = "Time up. Test completed.";
+                timerEl.textContent = "00:00";
+                if (activeTest && activeTest.id === t.id) {
+                  closeTestModule();
+                }
+              }
+            }, 1000);
+          }
+          createBtn.textContent = "Resume Test";
+          openTestModule(t);
         });
 
         resetBtn.addEventListener("click", () => {
@@ -357,11 +548,108 @@
           remainingSeconds[t.id] = t.minutes * 60;
           timerEl.textContent = formatTime(remainingSeconds[t.id]);
           timerEl.classList.remove("live");
-          startBtn.disabled = false;
-          startBtn.textContent = "Start Test";
+          createBtn.disabled = false;
+          createBtn.textContent = "Create Test";
           noteEl.textContent = "Ready to start.";
+          if (activeTest && activeTest.id === t.id) {
+            closeTestModule();
+          }
         });
       }
+    }
+
+    function buildTestQuestions(exam, test) {
+      const prompts = [
+        "Which option best explains the core concept here?",
+        "Identify the most accurate statement.",
+        "Choose the correct inference for this question.",
+        "Which option is conceptually correct?"
+      ];
+      const output = [];
+      for (let i = 0; i < 10; i += 1) {
+        const correct = `${test.title}: correct principle ${i + 1} for ${exam}.`;
+        const wrongA = `${test.title}: incorrect shortcut ${i + 1}.`;
+        const wrongB = `${test.title}: unrelated assumption ${i + 1}.`;
+        const wrongC = `${test.title}: misleading interpretation ${i + 1}.`;
+        const choices = [correct, wrongA, wrongB, wrongC];
+        const shuffled = choices.sort(() => Math.random() - 0.5);
+        output.push({
+          prompt: `${prompts[i % prompts.length]} (${exam} Test ${i + 1})`,
+          choices: shuffled,
+          answer: correct
+        });
+      }
+      return output;
+    }
+
+    function renderModuleQuestion() {
+      const q = moduleQuestions[moduleIndex];
+      moduleSelectedChoice = null;
+      moduleEvaluated = false;
+      moduleProgress.textContent = `Question ${moduleIndex + 1} / ${moduleQuestions.length}`;
+      moduleQuestion.textContent = q.prompt;
+      moduleActionBtn.textContent = "Check Answer";
+      moduleActionBtn.disabled = true;
+      moduleOptions.innerHTML = "";
+      q.choices.forEach((choice, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "module-opt";
+        btn.dataset.choice = choice;
+        btn.innerHTML = `<span class="module-tag">${optionTags[idx] || idx + 1}</span><span>${choice}</span>`;
+        btn.addEventListener("click", () => {
+          if (moduleEvaluated) return;
+          moduleSelectedChoice = choice;
+          moduleActionBtn.disabled = false;
+          Array.from(moduleOptions.children).forEach((node) => node.classList.remove("selected"));
+          btn.classList.add("selected");
+        });
+        moduleOptions.appendChild(btn);
+      });
+    }
+
+    function evaluateModuleAnswer() {
+      if (!moduleSelectedChoice) return;
+      moduleEvaluated = true;
+      const q = moduleQuestions[moduleIndex];
+      Array.from(moduleOptions.children).forEach((node) => {
+        const isAnswer = node.dataset.choice === q.answer;
+        const isSelected = node.dataset.choice === moduleSelectedChoice;
+        if (isAnswer) node.classList.add("correct");
+        if (isSelected && !isAnswer) node.classList.add("wrong");
+      });
+      moduleActionBtn.textContent = moduleIndex >= moduleQuestions.length - 1 ? "Finish Test" : "Next Question";
+    }
+
+    function nextModuleQuestion() {
+      if (moduleIndex >= moduleQuestions.length - 1) {
+        closeTestModule();
+        return;
+      }
+      moduleIndex += 1;
+      renderModuleQuestion();
+    }
+
+    function openTestModule(test) {
+      activeTest = test;
+      moduleTitle.textContent = test.title;
+      moduleMeta.textContent = `${selectedExam} • ${test.syllabus} • 10 Questions`;
+      moduleQuestions = buildTestQuestions(selectedExam, test);
+      moduleIndex = 0;
+      renderModuleQuestion();
+      testModuleOverlay.classList.remove("hidden");
+    }
+
+    function closeTestModule() {
+      testModuleOverlay.classList.add("hidden");
+      activeTest = null;
+      moduleQuestions = [];
+      moduleIndex = 0;
+      moduleSelectedChoice = null;
+      moduleEvaluated = false;
+      moduleOptions.innerHTML = "";
+      moduleQuestion.textContent = "";
+      moduleProgress.textContent = "Question 0 / 0";
     }
 
     async function init() {
@@ -387,13 +675,37 @@
           ? onboarding.exam_target.trim().toUpperCase()
           : "";
         if (["JEE", "NEET", "UPSC"].includes(preferredExam)) {
-          examSelect.value = preferredExam;
+          selectedExam = preferredExam;
         }
       } catch {}
+      syncExamDropdown();
       renderTests();
     }
 
-    examSelect.addEventListener("change", renderTests);
+    examTrigger.addEventListener("click", () => {
+      examMenu.classList.toggle("hidden");
+      syncExamDropdown();
+    });
+    for (const option of examOptions) {
+      option.addEventListener("click", () => {
+        selectedExam = option.dataset.exam;
+        closeExamMenu();
+        renderTests();
+      });
+    }
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".exam-select-wrap")) {
+        closeExamMenu();
+      }
+    });
+    closeModuleBtn.addEventListener("click", closeTestModule);
+    testModuleOverlay.addEventListener("click", (event) => {
+      if (event.target === testModuleOverlay) closeTestModule();
+    });
+    moduleActionBtn.addEventListener("click", () => {
+      if (!moduleEvaluated) evaluateModuleAnswer();
+      else nextModuleQuestion();
+    });
     goStudyBtn.addEventListener("click", () => {
       window.location.href = "index.html";
     });

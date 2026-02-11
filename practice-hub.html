@@ -80,7 +80,19 @@
     .exam-select-wrap {
       position: relative;
     }
-    .exam-select-wrap::after {
+    .exam-trigger {
+      width: 100%;
+      border: 1px solid #3f4f77;
+      border-radius: 11px;
+      background: #1b2642;
+      color: #eef3ff;
+      padding: 0.66rem 2rem 0.66rem 0.72rem;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      position: relative;
+    }
+    .exam-trigger::after {
       content: "";
       position: absolute;
       right: 0.68rem;
@@ -90,20 +102,35 @@
       border-right: 2px solid #9cb2de;
       border-bottom: 2px solid #9cb2de;
       transform: translateY(-65%) rotate(45deg);
-      pointer-events: none;
       opacity: 0.9;
     }
-    .practice-select {
-      width: 100%;
-      border: 1px solid #3f4f77;
+    .exam-menu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 0.38rem);
+      z-index: 8;
+      border: 1px solid #425585;
       border-radius: 11px;
-      background: #1b2642;
-      color: #eef3ff;
-      padding: 0.66rem 2rem 0.66rem 0.72rem;
+      background: #182238;
+      padding: 0.25rem;
+      box-shadow: 0 12px 22px rgba(0, 0, 0, 0.34);
+    }
+    .exam-option {
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #eaf0ff;
+      text-align: left;
+      padding: 0.48rem 0.5rem;
       font: inherit;
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
+      cursor: pointer;
+    }
+    .exam-option:hover,
+    .exam-option.active {
+      background: #243458;
+      color: #fff;
     }
     .topic-shell {
       border: 1px solid #2b3653;
@@ -360,11 +387,12 @@
       <div class="exam-shell">
         <div class="exam-label">Exam</div>
         <div class="exam-select-wrap">
-          <select id="practiceExamSelect" class="practice-select" aria-label="Select exam">
-            <option value="JEE">JEE</option>
-            <option value="NEET">NEET</option>
-            <option value="UPSC">UPSC</option>
-          </select>
+          <button id="examTrigger" class="exam-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">JEE</button>
+          <div id="examMenu" class="exam-menu hidden" role="listbox" aria-label="Select exam">
+            <button class="exam-option" data-exam="JEE" type="button">JEE</button>
+            <button class="exam-option" data-exam="NEET" type="button">NEET</button>
+            <button class="exam-option" data-exam="UPSC" type="button">UPSC</button>
+          </div>
         </div>
       </div>
 
@@ -409,7 +437,9 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const goStudyBtn = document.getElementById("goStudyBtn");
     const goTestSeriesBtn = document.getElementById("goTestSeriesBtn");
-    const practiceExamSelect = document.getElementById("practiceExamSelect");
+    const examTrigger = document.getElementById("examTrigger");
+    const examMenu = document.getElementById("examMenu");
+    const examOptions = Array.from(document.querySelectorAll(".exam-option"));
     const topicPickerBtn = document.getElementById("topicPickerBtn");
     const topicPickerTitle = document.getElementById("topicPickerTitle");
     const topicPickerMeta = document.getElementById("topicPickerMeta");
@@ -422,6 +452,19 @@
     let selectedPracticeExam = "JEE";
     let selectedPracticeSubject = "";
     let selectedPracticeChapter = "";
+
+    function syncExamDropdown() {
+      examTrigger.textContent = selectedPracticeExam;
+      examTrigger.setAttribute("aria-expanded", examMenu.classList.contains("hidden") ? "false" : "true");
+      for (const option of examOptions) {
+        option.classList.toggle("active", option.dataset.exam === selectedPracticeExam);
+      }
+    }
+
+    function closeExamMenu() {
+      examMenu.classList.add("hidden");
+      syncExamDropdown();
+    }
 
     function getCurriculumTopicsForExam(exam) {
       const source = window.curriculumData && window.curriculumData.catalog ? window.curriculumData.catalog : {};
@@ -580,7 +623,7 @@
       if (["JEE", "NEET", "UPSC"].includes(examFromQuery)) {
         selectedPracticeExam = examFromQuery;
       }
-      practiceExamSelect.value = selectedPracticeExam;
+      syncExamDropdown();
       renderPractice();
     }
 
@@ -598,11 +641,23 @@
       window.location.href = "index.html";
     });
 
-    practiceExamSelect.addEventListener("change", () => {
-      selectedPracticeExam = practiceExamSelect.value;
-      selectedPracticeSubject = "";
-      selectedPracticeChapter = "";
-      renderPractice();
+    examTrigger.addEventListener("click", () => {
+      examMenu.classList.toggle("hidden");
+      syncExamDropdown();
+    });
+    for (const option of examOptions) {
+      option.addEventListener("click", () => {
+        selectedPracticeExam = option.dataset.exam;
+        selectedPracticeSubject = "";
+        selectedPracticeChapter = "";
+        closeExamMenu();
+        renderPractice();
+      });
+    }
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".exam-select-wrap")) {
+        closeExamMenu();
+      }
     });
 
     topicPickerBtn.addEventListener("click", openChapterPicker);
@@ -612,6 +667,16 @@
         closeChapterPickerDialog();
       }
     });
+
+    /* kept for behavior parity: refresh topic if exam changes from any future integrations */
+    window.updatePracticeExam = (exam) => {
+      if (!["JEE", "NEET", "UPSC"].includes(String(exam || "").toUpperCase())) return;
+      selectedPracticeExam = String(exam).toUpperCase();
+      selectedPracticeSubject = "";
+      selectedPracticeChapter = "";
+      closeExamMenu();
+      renderPractice();
+    };
 
     init();
   </script>
