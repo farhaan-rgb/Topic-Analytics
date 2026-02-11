@@ -318,10 +318,7 @@
       margin-bottom: 0.9rem;
     }
 
-    .practice-topic-list {
-      display: grid;
-      gap: 0.85rem;
-    }
+    .practice-topic-list { margin-top: 0.2rem; }
 
     .practice-topic-card,
     .chapter-picker {
@@ -351,30 +348,47 @@
       flex-wrap: wrap;
     }
 
-    .practice-selection {
+    .chapter-selector-btn {
+      width: 100%;
+      border: 1px solid #3a4465;
+      border-radius: 12px;
+      background: #1c2540;
+      color: #eef3ff;
+      text-align: left;
+      padding: 0.74rem 0.78rem;
+      cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 0.7rem;
-      flex-wrap: wrap;
+      gap: 0.8rem;
       margin-bottom: 0.8rem;
+      font: inherit;
     }
 
-    .practice-selection-title {
+    .chapter-selector-btn:hover {
+      border-color: #57b7f5;
+    }
+
+    .chapter-selector-title {
       margin: 0;
       font-size: 1.04rem;
     }
 
-    .practice-selection-meta {
+    .chapter-selector-meta {
       margin-top: 0.25rem;
       color: #a6afce;
       font-size: 0.86rem;
     }
 
+    .chapter-selector-icon {
+      color: #c2d5ff;
+      font-size: 1.12rem;
+      line-height: 1;
+      opacity: 0.92;
+    }
+
     .chapter-picker {
       margin-bottom: 0.8rem;
-      max-height: 46vh;
-      overflow: auto;
     }
 
     .subject-group + .subject-group {
@@ -413,8 +427,62 @@
       background: #233c61;
     }
 
+    .journey-wrap {
+      border: 1px solid #28314a;
+      border-radius: 12px;
+      background: rgba(19, 26, 42, 0.65);
+      padding: 0.65rem 0.6rem 0.72rem;
+    }
+
+    .journey-title {
+      margin: 0 0 0.55rem;
+      font-size: 0.9rem;
+      color: #b8c7eb;
+      font-weight: 600;
+    }
+
+    .practice-journey {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(88px, 1fr));
+      gap: 0.45rem;
+      align-items: start;
+    }
+
+    .practice-journey::before {
+      content: "";
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      top: 38px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(92, 173, 255, 0.45), rgba(95, 112, 164, 0.45));
+      z-index: 0;
+    }
+
     .track-btn {
-      min-width: 106px;
+      min-width: 0;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+      gap: 0.28rem;
+    }
+
+    .track-btn .action-icon-slot {
+      width: 82px;
+      height: 78px;
+    }
+
+    .track-btn .hex.practice {
+      width: 60px;
+      height: 66px;
+      font-size: 1.22rem;
+    }
+
+    .track-btn .action-label {
+      font-size: 0.9rem;
+      text-align: center;
+      line-height: 1.1;
     }
 
     .track-easy .hex.practice { background: linear-gradient(145deg, #56c93a, #3b9f24); }
@@ -528,6 +596,10 @@
     @media (max-width: 520px) {
       .app-wrap, .auth-wrap, .onboarding-wrap { width: 95vw; }
       .upload-text { font-size: 1.12rem; }
+      .practice-journey {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .practice-journey::before { display: none; }
     }
   </style>
 </head>
@@ -617,13 +689,13 @@
           <option value="UPSC">UPSC</option>
         </select>
         <div class="practice-topic-card">
-          <div class="practice-selection">
+          <button id="chapterSelectorBtn" class="chapter-selector-btn" type="button">
             <div>
-              <h3 class="practice-selection-title" id="selectedChapterTitle">Select a chapter</h3>
-              <div class="practice-selection-meta" id="selectedChapterMeta">Choose subject and chapter</div>
+              <h3 class="chapter-selector-title" id="selectedChapterTitle">Select a chapter</h3>
+              <div class="chapter-selector-meta" id="selectedChapterMeta">Choose subject and chapter</div>
             </div>
-            <button id="changeChapterBtn" class="logout-btn" type="button">Change</button>
-          </div>
+            <span id="chapterSelectorIcon" class="chapter-selector-icon">&#9662;</span>
+          </button>
           <div id="chapterPicker" class="chapter-picker hidden"></div>
           <div id="practiceTrackList" class="practice-topic-list"></div>
         </div>
@@ -667,7 +739,8 @@
     const practiceExamSelect = document.getElementById("practiceExamSelect");
     const selectedChapterTitle = document.getElementById("selectedChapterTitle");
     const selectedChapterMeta = document.getElementById("selectedChapterMeta");
-    const changeChapterBtn = document.getElementById("changeChapterBtn");
+    const chapterSelectorBtn = document.getElementById("chapterSelectorBtn");
+    const chapterSelectorIcon = document.getElementById("chapterSelectorIcon");
     const chapterPicker = document.getElementById("chapterPicker");
     const practiceTrackList = document.getElementById("practiceTrackList");
     const onboardingTitle = document.getElementById("onboardingTitle");
@@ -811,7 +884,8 @@
         { id: "PYQs", label: "PYQs", css: "track-pyqs" },
         { id: "Test yourself", label: "Test yourself", css: "track-test" }
       ];
-      practiceTrackList.innerHTML = "";
+      practiceTrackList.innerHTML = '<div class="journey-wrap"><div class="journey-title">Practice Journey</div><div class="practice-journey" id="practiceJourney"></div></div>';
+      const journey = document.getElementById("practiceJourney");
       for (const track of tracks) {
         const btn = document.createElement("button");
         btn.className = `action-btn track-btn ${track.css}`.trim();
@@ -821,7 +895,7 @@
           const url = `topic-practice.html?exam=${encodeURIComponent(selectedPracticeExam)}&subject=${encodeURIComponent(selectedPracticeSubject)}&chapter=${encodeURIComponent(selectedPracticeChapter)}&track=${encodeURIComponent(track.id)}`;
           window.location.href = url;
         });
-        practiceTrackList.appendChild(btn);
+        journey.appendChild(btn);
       }
     }
 
@@ -830,11 +904,11 @@
       const hasSelection = Boolean(selectedPracticeSubject && selectedPracticeChapter);
       selectedChapterTitle.textContent = hasSelection ? selectedPracticeChapter : "Select a chapter";
       selectedChapterMeta.textContent = hasSelection
-        ? `${selectedPracticeExam} • ${selectedPracticeSubject}`
+        ? `${selectedPracticeSubject}`
         : "Choose subject and chapter";
 
       chapterPicker.classList.toggle("hidden", !chapterPickerOpen);
-      changeChapterBtn.textContent = chapterPickerOpen ? "Done" : "Change";
+      chapterSelectorIcon.innerHTML = chapterPickerOpen ? "&#9652;" : "&#9662;";
       renderChapterPicker();
 
       practiceTrackList.innerHTML = "";
@@ -1280,7 +1354,7 @@
       chapterPickerOpen = false;
       renderPracticeTopics();
     });
-    changeChapterBtn.addEventListener("click", () => {
+    chapterSelectorBtn.addEventListener("click", () => {
       chapterPickerOpen = !chapterPickerOpen;
       renderPracticeTopics();
     });
