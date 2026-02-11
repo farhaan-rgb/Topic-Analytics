@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboard - Teachmint</title>
+  <style>
+    :root {
+      --text: #eef3ff;
+      --muted: #a8b5ca;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Poppins", "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #0d213a 0%, #08111f 100%);
+      min-height: 100vh;
+      padding: 0.9rem;
+    }
+    .container { width: min(760px, 96vw); margin: 0 auto; }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 0.85rem;
+    }
+    .back {
+      border: 1px solid #4a6380;
+      background: rgba(16, 34, 56, 0.85);
+      color: #eef4ff;
+      border-radius: 11px;
+      padding: 0.5rem 0.72rem;
+      text-decoration: none;
+      font-size: 0.92rem;
+    }
+    .title {
+      margin: 0;
+      font-size: clamp(1.2rem, 4vw, 1.7rem);
+      line-height: 1.2;
+    }
+    .sub {
+      margin-top: 0.2rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .prize-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.6rem;
+      margin-bottom: 0.8rem;
+    }
+    .prize {
+      border: 1px solid #35507e;
+      border-radius: 12px;
+      background: linear-gradient(160deg, rgba(35, 62, 100, 0.88), rgba(21, 40, 66, 0.88));
+      padding: 0.58rem;
+      text-align: center;
+    }
+    .prize-rank {
+      font-size: 0.78rem;
+      color: #b6c6eb;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .prize-amt {
+      margin-top: 0.16rem;
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: #ffd66a;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #2e476f;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(20, 35, 56, 0.88);
+    }
+    th, td {
+      border-bottom: 1px solid rgba(82, 106, 145, 0.35);
+      padding: 0.58rem 0.62rem;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    th {
+      background: rgba(29, 50, 82, 0.92);
+      color: #dae6ff;
+      font-size: 0.8rem;
+      letter-spacing: 0.03em;
+    }
+    tr:last-child td { border-bottom: 0; }
+    .rank {
+      width: 60px;
+      font-weight: 700;
+      color: #d6e6ff;
+    }
+    .empty {
+      margin-top: 0.9rem;
+      border: 1px solid #34507d;
+      border-radius: 12px;
+      background: rgba(25, 44, 72, 0.62);
+      color: #d9e4ff;
+      text-align: center;
+      padding: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="top">
+      <a id="backBtn" class="back" href="test-series.html">Back</a>
+      <div>
+        <h1 id="title" class="title">Leaderboard</h1>
+        <div id="sub" class="sub"></div>
+      </div>
+    </div>
+
+    <div class="prize-grid">
+      <div class="prize">
+        <div class="prize-rank">1st Prize</div>
+        <div class="prize-amt">Rs 5,000</div>
+      </div>
+      <div class="prize">
+        <div class="prize-rank">2nd Prize</div>
+        <div class="prize-amt">Rs 3,000</div>
+      </div>
+      <div class="prize">
+        <div class="prize-rank">3rd Prize</div>
+        <div class="prize-amt">Rs 1,500</div>
+      </div>
+    </div>
+
+    <table id="leaderTable">
+      <thead>
+        <tr>
+          <th class="rank">Rank</th>
+          <th>User</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+
+    <div id="empty" class="empty" style="display:none;">No scores yet.</div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const exam = (params.get("exam") || "JEE").trim().toUpperCase();
+    const testId = (params.get("test_id") || "test").trim();
+    const title = (params.get("title") || "Mock Test").trim();
+    const statsKey = (params.get("stats_key") || `${exam}:${testId}`).trim();
+
+    const backBtn = document.getElementById("backBtn");
+    const titleEl = document.getElementById("title");
+    const subEl = document.getElementById("sub");
+    const rowsEl = document.getElementById("rows");
+    const emptyEl = document.getElementById("empty");
+
+    function seededRand(seed) {
+      let h = 2166136261;
+      const s = String(seed || "");
+      for (let i = 0; i < s.length; i += 1) {
+        h ^= s.charCodeAt(i);
+        h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+      }
+      return () => {
+        h += 0x6d2b79f5;
+        let t = h;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function seededFallback(key) {
+      const names = ["Aarav", "Diya", "Kabir", "Myra", "Vivaan", "Ishita", "Arjun", "Anaya", "Rohan", "Kiara"];
+      const rnd = seededRand(key);
+      const arr = [];
+      for (let i = 0; i < 10; i += 1) {
+        const name = `${names[Math.floor(rnd() * names.length)]}_${Math.floor(rnd() * 90 + 10)}`;
+        const score = Math.max(1, Math.round(100 - i * 4 - rnd() * 6));
+        arr.push({ name, score, total: 100, at: Date.now() - i * 60000 });
+      }
+      return arr;
+    }
+
+    function loadBoard() {
+      let raw = {};
+      try {
+        raw = JSON.parse(localStorage.getItem("teachmint_test_leaderboard_v1") || "{}");
+      } catch {}
+      const arr = Array.isArray(raw[statsKey]) ? raw[statsKey] : seededFallback(statsKey);
+      arr.sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+      return arr.slice(0, 10);
+    }
+
+    function render() {
+      const data = loadBoard();
+      rowsEl.innerHTML = "";
+      if (!data.length) {
+        emptyEl.style.display = "block";
+        return;
+      }
+      emptyEl.style.display = "none";
+      for (let i = 0; i < data.length; i += 1) {
+        const row = data[i];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="rank">#${i + 1}</td>
+          <td>${row.name || "Learner"}</td>
+          <td>${row.score}/${row.total || 100}</td>
+        `;
+        rowsEl.appendChild(tr);
+      }
+    }
+
+    backBtn.href = `test-series.html?exam=${encodeURIComponent(exam)}`;
+    titleEl.textContent = `${title} Leaderboard`;
+    subEl.textContent = `${exam} • Top users and scores`;
+    render();
+  </script>
+</body>
+</html>

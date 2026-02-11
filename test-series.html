@@ -59,6 +59,7 @@
       cursor: pointer;
       white-space: nowrap;
     }
+
     .exam-shell {
       border: 1px solid #2f3a56;
       border-radius: 12px;
@@ -74,8 +75,8 @@
       margin-bottom: 0.34rem;
       font-weight: 600;
     }
-    .exam-select-wrap { position: relative; }
-    .exam-trigger {
+    .select-wrap { position: relative; }
+    .select-trigger {
       width: 100%;
       border: 1px solid #3f4f77;
       border-radius: 11px;
@@ -87,7 +88,7 @@
       cursor: pointer;
       position: relative;
     }
-    .exam-trigger::after {
+    .select-trigger::after {
       content: "";
       position: absolute;
       right: 0.68rem;
@@ -99,7 +100,7 @@
       transform: translateY(-65%) rotate(45deg);
       opacity: 0.9;
     }
-    .exam-menu {
+    .select-menu {
       position: absolute;
       left: 0;
       right: 0;
@@ -111,7 +112,7 @@
       padding: 0.25rem;
       box-shadow: 0 12px 22px rgba(0, 0, 0, 0.34);
     }
-    .exam-option {
+    .select-option {
       width: 100%;
       border: 0;
       border-radius: 8px;
@@ -122,11 +123,12 @@
       font: inherit;
       cursor: pointer;
     }
-    .exam-option:hover,
-    .exam-option.active {
+    .select-option:hover,
+    .select-option.active {
       background: #243458;
       color: #fff;
     }
+
     .custom-bar {
       margin-bottom: 0.85rem;
     }
@@ -141,6 +143,7 @@
       font-weight: 600;
       cursor: pointer;
     }
+
     .tests-list {
       display: grid;
       gap: 0.75rem;
@@ -157,11 +160,7 @@
       align-items: flex-start;
       gap: 0.7rem;
     }
-    .test-title {
-      margin: 0;
-      font-size: 1rem;
-      line-height: 1.25;
-    }
+    .test-title { margin: 0; font-size: 1rem; line-height: 1.25; }
     .test-meta {
       margin-top: 0.28rem;
       color: #a9b5d7;
@@ -202,6 +201,12 @@
       font-weight: 600;
       cursor: pointer;
     }
+    .test-btn.ghost {
+      border: 1px solid #4c5e88;
+      background: #1a2742;
+      color: #dfe8ff;
+    }
+
     .custom-overlay {
       position: fixed;
       inset: 0;
@@ -250,35 +255,121 @@
       font-size: 0.9rem;
       margin-bottom: 0.35rem;
     }
-    .field, .field-select {
+
+    .duration-wrap {
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      gap: 0.42rem;
+      align-items: center;
+    }
+    .dur-btn {
+      border: 1px solid #3f4f77;
+      background: linear-gradient(155deg, #1b2642, #182137);
+      color: #eaf0ff;
+      border-radius: 10px;
+      height: 42px;
+      font: inherit;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+    .dur-btn:hover {
+      border-color: #59bdfc;
+      transform: translateY(-1px);
+    }
+    .dur-btn span {
+      font-size: 1.2rem;
+      line-height: 1;
+      color: #b6ccf2;
+      transform: translateY(-1px);
+    }
+    .dur-input {
       width: 100%;
       border: 1px solid #4a5d93;
       border-radius: 10px;
-      background: #1f2847;
+      background: linear-gradient(160deg, #202c4c, #1c2643);
       color: #f2f6ff;
-      padding: 0.62rem 0.68rem;
+      padding: 0.66rem 0.68rem;
       font: inherit;
+      text-align: center;
+      appearance: textfield;
+      -moz-appearance: textfield;
+      font-weight: 600;
     }
-    .picker-list {
+    .dur-input::-webkit-outer-spin-button,
+    .dur-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
       margin: 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
-      gap: 0.4rem;
-      max-height: 180px;
-      overflow: auto;
-      border: 1px solid #2f3f66;
-      border-radius: 10px;
-      padding: 0.45rem;
-      background: #18233f;
     }
-    .check-item {
+
+    .pick-box {
+      border: 1px solid #304064;
+      border-radius: 11px;
+      padding: 0.42rem;
+      background: linear-gradient(160deg, #17243f, #141f35);
+      max-height: 190px;
+      overflow: auto;
+      display: grid;
+      gap: 0.45rem;
+    }
+    .pick-empty {
+      border: 1px solid #3a4e79;
+      border-radius: 9px;
+      background: #1b2742;
+      color: #a8b7da;
+      padding: 0.54rem 0.6rem;
+      font-size: 0.84rem;
+    }
+    .pick-option {
+      width: 100%;
+      border: 1px solid #3d517f;
+      border-radius: 10px;
+      background: #1c2743;
+      color: #e7ecff;
+      padding: 0.5rem 0.6rem;
+      text-align: left;
+      font: inherit;
+      font-size: 0.84rem;
+      cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      font-size: 0.85rem;
-      color: #e8eeff;
+      justify-content: space-between;
+      gap: 0.6rem;
+      transition: border-color 0.16s ease, background 0.16s ease;
     }
+    .pick-option:hover {
+      border-color: #58bbfb;
+    }
+    .pick-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .pick-state {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      border: 1px solid #49608f;
+      background: #223253;
+      color: transparent;
+      display: grid;
+      place-items: center;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+    .pick-option.active {
+      border-color: #4ac0ff;
+      background: linear-gradient(160deg, #234a75, #1f4067);
+      box-shadow: inset 0 0 0 1px rgba(77, 193, 255, 0.3);
+    }
+    .pick-option.active .pick-state {
+      border-color: #8ee2ff;
+      background: #2a6b95;
+      color: #eefbff;
+    }
+
     .custom-actions {
       margin-top: 0.9rem;
       display: flex;
@@ -310,6 +401,7 @@
       font-size: 0.84rem;
       color: #ff9cbb;
     }
+
     .bottom-nav {
       position: fixed;
       left: 0;
@@ -364,12 +456,12 @@
 
       <div class="exam-shell">
         <div class="exam-label">Exam</div>
-        <div class="exam-select-wrap">
-          <button id="examTrigger" class="exam-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">JEE</button>
-          <div id="examMenu" class="exam-menu hidden" role="listbox" aria-label="Select exam">
-            <button class="exam-option" data-exam="JEE" type="button">JEE</button>
-            <button class="exam-option" data-exam="NEET" type="button">NEET</button>
-            <button class="exam-option" data-exam="UPSC" type="button">UPSC</button>
+        <div class="select-wrap" id="examSelectWrap">
+          <button id="examTrigger" class="select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">JEE</button>
+          <div id="examMenu" class="select-menu hidden" role="listbox" aria-label="Select exam">
+            <button class="select-option" data-exam="JEE" type="button">JEE</button>
+            <button class="select-option" data-exam="NEET" type="button">NEET</button>
+            <button class="select-option" data-exam="UPSC" type="button">UPSC</button>
           </div>
         </div>
       </div>
@@ -391,23 +483,30 @@
       <div class="grid">
         <div>
           <label for="customDuration">Duration (minutes)</label>
-          <input id="customDuration" class="field" type="number" min="10" max="300" step="5" value="60" />
+          <div class="duration-wrap">
+            <button id="decDurationBtn" class="dur-btn" type="button" aria-label="Decrease duration"><span aria-hidden="true">‹</span></button>
+            <input id="customDuration" class="dur-input" type="number" min="10" max="300" step="5" value="60" />
+            <button id="incDurationBtn" class="dur-btn" type="button" aria-label="Increase duration"><span aria-hidden="true">›</span></button>
+          </div>
         </div>
         <div>
-          <label for="customLevel">Level</label>
-          <select id="customLevel" class="field-select">
-            <option value="Easy">Easy</option>
-            <option value="Medium">Medium</option>
-            <option value="Hard">Hard</option>
-          </select>
+          <label>Level</label>
+          <div class="select-wrap" id="levelSelectWrap">
+            <button id="levelTrigger" class="select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">Easy</button>
+            <div id="levelMenu" class="select-menu hidden" role="listbox" aria-label="Select level">
+              <button class="select-option" data-level="Easy" type="button">Easy</button>
+              <button class="select-option" data-level="Medium" type="button">Medium</button>
+              <button class="select-option" data-level="Hard" type="button">Hard</button>
+            </div>
+          </div>
         </div>
         <div class="full">
           <label>Subjects</label>
-          <ul id="subjectsList" class="picker-list"></ul>
+          <div id="subjectsBox" class="pick-box"></div>
         </div>
         <div class="full">
           <label>Chapters</label>
-          <ul id="chaptersList" class="picker-list"></ul>
+          <div id="chaptersBox" class="pick-box"></div>
         </div>
       </div>
       <div id="customStatus" class="custom-status"></div>
@@ -433,7 +532,9 @@
 
     const examTrigger = document.getElementById("examTrigger");
     const examMenu = document.getElementById("examMenu");
-    const examOptions = Array.from(document.querySelectorAll(".exam-option"));
+    const examOptions = Array.from(document.querySelectorAll("#examMenu .select-option"));
+    const examSelectWrap = document.getElementById("examSelectWrap");
+
     const testsList = document.getElementById("testsList");
     const welcomeText = document.getElementById("welcomeText");
     const logoutBtn = document.getElementById("logoutBtn");
@@ -445,10 +546,18 @@
     const closeCustomBtn = document.getElementById("closeCustomBtn");
     const cancelCustomBtn = document.getElementById("cancelCustomBtn");
     const createCustomBtn = document.getElementById("createCustomBtn");
+
     const customDuration = document.getElementById("customDuration");
-    const customLevel = document.getElementById("customLevel");
-    const subjectsList = document.getElementById("subjectsList");
-    const chaptersList = document.getElementById("chaptersList");
+    const decDurationBtn = document.getElementById("decDurationBtn");
+    const incDurationBtn = document.getElementById("incDurationBtn");
+
+    const levelTrigger = document.getElementById("levelTrigger");
+    const levelMenu = document.getElementById("levelMenu");
+    const levelOptions = Array.from(document.querySelectorAll("#levelMenu .select-option"));
+    const levelSelectWrap = document.getElementById("levelSelectWrap");
+
+    const subjectsBox = document.getElementById("subjectsBox");
+    const chaptersBox = document.getElementById("chaptersBox");
     const customStatus = document.getElementById("customStatus");
 
     const STATS_STORAGE_KEY = "teachmint_test_stats_v2";
@@ -468,24 +577,25 @@
 
     const testTemplates = {
       JEE: [
-        { id: "jee-1", title: "JEE Mock Test 1", syllabus: "Maths + Physics + Chemistry", questions: 90, minutes: 180 },
-        { id: "jee-2", title: "JEE Mock Test 2", syllabus: "Core Concepts Revision", questions: 75, minutes: 150 },
-        { id: "jee-3", title: "JEE Speed Test", syllabus: "Mixed High-Weightage Topics", questions: 45, minutes: 60 }
+        { id: "jee-1", title: "JEE Mock Test 1", syllabus: "Maths + Physics + Chemistry", questions: 90, minutes: 180, isCustom: false },
+        { id: "jee-2", title: "JEE Mock Test 2", syllabus: "Core Concepts Revision", questions: 75, minutes: 150, isCustom: false },
+        { id: "jee-3", title: "JEE Speed Test", syllabus: "Mixed High-Weightage Topics", questions: 45, minutes: 60, isCustom: false }
       ],
       NEET: [
-        { id: "neet-1", title: "NEET Mock Test 1", syllabus: "Biology + Physics + Chemistry", questions: 180, minutes: 180 },
-        { id: "neet-2", title: "NEET Mock Test 2", syllabus: "NCERT Based Mix", questions: 120, minutes: 120 },
-        { id: "neet-3", title: "NEET Time Trial", syllabus: "High-Frequency NEET Topics", questions: 60, minutes: 60 }
+        { id: "neet-1", title: "NEET Mock Test 1", syllabus: "Biology + Physics + Chemistry", questions: 180, minutes: 180, isCustom: false },
+        { id: "neet-2", title: "NEET Mock Test 2", syllabus: "NCERT Based Mix", questions: 120, minutes: 120, isCustom: false },
+        { id: "neet-3", title: "NEET Time Trial", syllabus: "High-Frequency NEET Topics", questions: 60, minutes: 60, isCustom: false }
       ],
       UPSC: [
-        { id: "upsc-1", title: "UPSC Prelims Mock 1", syllabus: "Polity + History + Geography", questions: 100, minutes: 120 },
-        { id: "upsc-2", title: "UPSC CSAT Drill", syllabus: "Aptitude + Reasoning + Comprehension", questions: 80, minutes: 120 },
-        { id: "upsc-3", title: "UPSC Rapid Revision Test", syllabus: "Static + Current Affairs Blend", questions: 50, minutes: 60 }
+        { id: "upsc-1", title: "UPSC Prelims Mock 1", syllabus: "Polity + History + Geography", questions: 100, minutes: 120, isCustom: false },
+        { id: "upsc-2", title: "UPSC CSAT Drill", syllabus: "Aptitude + Reasoning + Comprehension", questions: 80, minutes: 120, isCustom: false },
+        { id: "upsc-3", title: "UPSC Rapid Revision Test", syllabus: "Static + Current Affairs Blend", questions: 50, minutes: 60, isCustom: false }
       ]
     };
 
     let currentUser = null;
     let selectedExam = "JEE";
+    let selectedLevel = "Easy";
     let statsByKey = loadStats();
     let customTestsByExam = loadCustomTests();
     let selectedSubjects = new Set();
@@ -549,12 +659,32 @@
       syncExamDropdown();
     }
 
+    function syncLevelDropdown() {
+      levelTrigger.textContent = selectedLevel;
+      levelTrigger.setAttribute("aria-expanded", levelMenu.classList.contains("hidden") ? "false" : "true");
+      for (const option of levelOptions) {
+        option.classList.toggle("active", option.dataset.level === selectedLevel);
+      }
+    }
+
+    function closeLevelMenu() {
+      levelMenu.classList.add("hidden");
+      syncLevelDropdown();
+    }
+
+    function updateDuration(delta) {
+      const current = Number(customDuration.value) || 60;
+      const next = Math.max(10, Math.min(300, current + delta));
+      customDuration.value = String(next);
+    }
+
     function openCustomModal() {
       selectedSubjects = new Set();
       selectedChapters = new Set();
+      selectedLevel = "Easy";
       customDuration.value = "60";
-      customLevel.value = "Easy";
       customStatus.textContent = "";
+      syncLevelDropdown();
       renderSubjects();
       renderChapters();
       customOverlay.classList.remove("hidden");
@@ -571,27 +701,28 @@
 
     function renderSubjects() {
       const map = curriculumMap();
-      subjectsList.innerHTML = "";
+      subjectsBox.innerHTML = "";
       const subjects = Object.keys(map);
       if (!subjects.length) {
-        const li = document.createElement("li");
-        li.className = "check-item";
-        li.textContent = "No subjects available.";
-        subjectsList.appendChild(li);
+        const div = document.createElement("div");
+        div.className = "pick-option";
+        div.textContent = "No subjects available.";
+        div.style.cursor = "default";
+        subjectsBox.appendChild(div);
         return;
       }
       for (const subject of subjects) {
-        const li = document.createElement("li");
-        const id = `sub-${subject.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`;
-        li.className = "check-item";
-        li.innerHTML = `<input id="${id}" type="checkbox" ${selectedSubjects.has(subject) ? "checked" : ""} /><label for="${id}" style="margin:0;cursor:pointer;">${subject}</label>`;
-        const checkbox = li.querySelector("input");
-        checkbox.addEventListener("change", () => {
-          if (checkbox.checked) selectedSubjects.add(subject);
-          else selectedSubjects.delete(subject);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `pick-option ${selectedSubjects.has(subject) ? "active" : ""}`.trim();
+        btn.textContent = subject;
+        btn.addEventListener("click", () => {
+          if (selectedSubjects.has(subject)) selectedSubjects.delete(subject);
+          else selectedSubjects.add(subject);
+          renderSubjects();
           renderChapters();
         });
-        subjectsList.appendChild(li);
+        subjectsBox.appendChild(btn);
       }
     }
 
@@ -601,7 +732,7 @@
       for (const subject of selectedSubjects) {
         const chapters = Array.isArray(map[subject]) ? map[subject] : [];
         for (const chapter of chapters) {
-          out.push({ subject, chapter });
+          out.push({ subject, chapter, key: `${subject}::${chapter}` });
         }
       }
       return out;
@@ -609,30 +740,31 @@
 
     function renderChapters() {
       const pool = chapterPool();
-      const keysAllowed = new Set(pool.map((p) => `${p.subject}::${p.chapter}`));
+      const allowed = new Set(pool.map((p) => p.key));
       for (const key of [...selectedChapters]) {
-        if (!keysAllowed.has(key)) selectedChapters.delete(key);
+        if (!allowed.has(key)) selectedChapters.delete(key);
       }
-      chaptersList.innerHTML = "";
+
+      chaptersBox.innerHTML = "";
       if (!pool.length) {
-        const li = document.createElement("li");
-        li.className = "check-item";
-        li.textContent = "Select subject(s) first.";
-        chaptersList.appendChild(li);
+        const div = document.createElement("div");
+        div.className = "pick-option";
+        div.textContent = "Select subject(s) first.";
+        div.style.cursor = "default";
+        chaptersBox.appendChild(div);
         return;
       }
-      for (const entry of pool) {
-        const key = `${entry.subject}::${entry.chapter}`;
-        const id = `ch-${Math.random().toString(36).slice(2, 8)}`;
-        const li = document.createElement("li");
-        li.className = "check-item";
-        li.innerHTML = `<input id="${id}" type="checkbox" ${selectedChapters.has(key) ? "checked" : ""} /><label for="${id}" style="margin:0;cursor:pointer;">${entry.subject} - ${entry.chapter}</label>`;
-        const checkbox = li.querySelector("input");
-        checkbox.addEventListener("change", () => {
-          if (checkbox.checked) selectedChapters.add(key);
-          else selectedChapters.delete(key);
+      for (const item of pool) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `pick-option ${selectedChapters.has(item.key) ? "active" : ""}`.trim();
+        btn.textContent = `${item.subject} - ${item.chapter}`;
+        btn.addEventListener("click", () => {
+          if (selectedChapters.has(item.key)) selectedChapters.delete(item.key);
+          else selectedChapters.add(item.key);
+          renderChapters();
         });
-        chaptersList.appendChild(li);
+        chaptersBox.appendChild(btn);
       }
     }
 
@@ -661,6 +793,7 @@
           </div>
           <div class="test-actions">
             <button class="test-btn" type="button" id="create-${t.id}">Create Questions</button>
+            ${t.isCustom ? "" : `<button class="test-btn ghost" type="button" id="leader-${t.id}">Leaderboard</button>`}
           </div>
         `;
         testsList.appendChild(card);
@@ -669,9 +802,16 @@
           const subjectsText = Array.isArray(t.subjects) ? t.subjects.join("|") : "";
           const chaptersText = Array.isArray(t.chapters) ? t.chapters.join("|") : "";
           const levelText = t.level ? String(t.level) : "";
-          const url = `test-attempt.html?exam=${encodeURIComponent(selectedExam)}&test_id=${encodeURIComponent(t.id)}&title=${encodeURIComponent(t.title)}&syllabus=${encodeURIComponent(t.syllabus)}&count=${encodeURIComponent(String(t.questions))}&minutes=${encodeURIComponent(String(t.minutes))}&stats_key=${encodeURIComponent(statsKey)}&level=${encodeURIComponent(levelText)}&subjects=${encodeURIComponent(subjectsText)}&chapters=${encodeURIComponent(chaptersText)}`;
+          const url = `test-attempt.html?exam=${encodeURIComponent(selectedExam)}&test_id=${encodeURIComponent(t.id)}&title=${encodeURIComponent(t.title)}&syllabus=${encodeURIComponent(t.syllabus)}&count=${encodeURIComponent(String(t.questions))}&minutes=${encodeURIComponent(String(t.minutes))}&stats_key=${encodeURIComponent(statsKey)}&level=${encodeURIComponent(levelText)}&subjects=${encodeURIComponent(subjectsText)}&chapters=${encodeURIComponent(chaptersText)}&is_custom=${t.isCustom ? "1" : "0"}&user=${encodeURIComponent(currentUser && currentUser.email ? currentUser.email : "Learner")}`;
           window.location.href = url;
         });
+
+        if (!t.isCustom) {
+          card.querySelector(`#leader-${t.id}`).addEventListener("click", () => {
+            const url = `test-leaderboard.html?exam=${encodeURIComponent(selectedExam)}&test_id=${encodeURIComponent(t.id)}&title=${encodeURIComponent(t.title)}&stats_key=${encodeURIComponent(statsKey)}`;
+            window.location.href = url;
+          });
+        }
       }
     }
 
@@ -700,7 +840,9 @@
           selectedExam = preferredExam;
         }
       } catch {}
+
       syncExamDropdown();
+      syncLevelDropdown();
       renderTests();
     }
 
@@ -708,7 +850,6 @@
       examMenu.classList.toggle("hidden");
       syncExamDropdown();
     });
-
     for (const option of examOptions) {
       option.addEventListener("click", () => {
         selectedExam = option.dataset.exam;
@@ -717,8 +858,20 @@
       });
     }
 
+    levelTrigger.addEventListener("click", () => {
+      levelMenu.classList.toggle("hidden");
+      syncLevelDropdown();
+    });
+    for (const option of levelOptions) {
+      option.addEventListener("click", () => {
+        selectedLevel = option.dataset.level;
+        closeLevelMenu();
+      });
+    }
+
     document.addEventListener("click", (event) => {
-      if (!event.target.closest(".exam-select-wrap")) closeExamMenu();
+      if (!event.target.closest("#examSelectWrap")) closeExamMenu();
+      if (!event.target.closest("#levelSelectWrap")) closeLevelMenu();
     });
 
     openCustomBtn.addEventListener("click", openCustomModal);
@@ -727,6 +880,9 @@
     customOverlay.addEventListener("click", (event) => {
       if (event.target === customOverlay) closeCustomModal();
     });
+
+    decDurationBtn.addEventListener("click", () => updateDuration(-5));
+    incDurationBtn.addEventListener("click", () => updateDuration(5));
 
     createCustomBtn.addEventListener("click", () => {
       customStatus.textContent = "";
@@ -745,13 +901,12 @@
         const idx = key.indexOf("::");
         return idx >= 0 ? key.slice(idx + 2) : key;
       });
-      const level = customLevel.value;
 
       const customId = `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
       const existing = Array.isArray(customTestsByExam[selectedExam]) ? customTestsByExam[selectedExam] : [];
       const title = `Custom Mock ${existing.length + 1}`;
       const qCount = Math.max(10, Math.min(200, Math.round(duration * 0.8)));
-      const syllabus = `${level} • ${subjects.join(", ")} • ${chapterPairs.slice(0, 3).join(", ")}${chapterPairs.length > 3 ? "..." : ""}`;
+      const syllabus = `${selectedLevel} • ${subjects.join(", ")} • ${chapterPairs.slice(0, 3).join(", ")}${chapterPairs.length > 3 ? "..." : ""}`;
       const statsKey = `${selectedExam}:${customId}`;
 
       customTestsByExam[selectedExam] = [
@@ -761,10 +916,11 @@
           syllabus,
           questions: qCount,
           minutes: duration,
-          level,
+          level: selectedLevel,
           subjects,
           chapters: chapterPairs,
-          statsKey
+          statsKey,
+          isCustom: true
         },
         ...existing
       ];
@@ -782,11 +938,9 @@
     goStudyBtn.addEventListener("click", () => {
       window.location.href = "index.html";
     });
-
     goPracticeBtn.addEventListener("click", () => {
       window.location.href = "practice-hub.html";
     });
-
     logoutBtn.addEventListener("click", async () => {
       try {
         await api.signOut();

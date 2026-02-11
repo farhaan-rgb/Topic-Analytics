@@ -8,7 +8,6 @@
     :root {
       --bg-top: #123055;
       --bg-main: #08111f;
-      --panel: #173556;
       --option: #26384c;
       --option-border: #3b4f66;
       --text: #eef3ff;
@@ -121,6 +120,57 @@
       color: #dbe5f8;
       text-align: center;
     }
+    .result-actions {
+      margin-top: 0.8rem;
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .rating-wrap {
+      margin-top: 0.8rem;
+      border-top: 1px solid rgba(160, 190, 236, 0.22);
+      padding-top: 0.7rem;
+      text-align: center;
+    }
+    .rating-title {
+      color: #d8e6ff;
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+    .stars {
+      display: flex;
+      justify-content: center;
+      gap: 0.2rem;
+    }
+    .star-btn {
+      border: 0;
+      background: transparent;
+      color: #6f86b6;
+      font-size: 1.45rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0.1rem;
+    }
+    .star-btn.active { color: #ffd761; }
+    .rating-submit {
+      margin-top: 0.5rem;
+      border: 1px solid #2f9bf0;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2f9bf0, #2377bc);
+      color: #fff;
+      padding: 0.42rem 0.72rem;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .rating-note {
+      margin-top: 0.35rem;
+      min-height: 1rem;
+      color: #9fd2ff;
+      font-size: 0.82rem;
+    }
   </style>
 </head>
 <body>
@@ -158,6 +208,8 @@
     const count = Math.max(1, Number(params.get("count")) || 10);
     const minutes = Math.max(1, Number(params.get("minutes")) || 60);
     const statsKey = (params.get("stats_key") || "").trim();
+    const isCustom = params.get("is_custom") === "1";
+    const userName = (params.get("user") || "Learner").trim();
 
     const titleEl = document.getElementById("title");
     const metaEl = document.getElementById("meta");
@@ -185,6 +237,9 @@
     let remainingSeconds = minutes * 60;
     let timerHandle = null;
     let completionSaved = false;
+    let ratingSaved = false;
+    let selectedRating = 0;
+    let correctCount = 0;
 
     function showEmpty(msg) {
       quizEl.style.display = "none";
@@ -259,6 +314,7 @@
       if (!selectedChoice) return;
       evaluated = true;
       const q = questions[index];
+      if (selectedChoice === q.answer) correctCount += 1;
       Array.from(optionsEl.children).forEach((node) => {
         const isAnswer = node.dataset.choice === q.answer;
         const isSelected = node.dataset.choice === selectedChoice;
@@ -269,31 +325,108 @@
       actionBtn.textContent = index >= questions.length - 1 ? "Finish Test" : "Next Question";
     }
 
+    function persistCompletion() {
+      if (completionSaved || !statsKey) return;
+      completionSaved = true;
+      try {
+        const statsStore = "teachmint_test_stats_v2";
+        const statsRaw = JSON.parse(localStorage.getItem(statsStore) || "{}");
+        const row = statsRaw && typeof statsRaw[statsKey] === "object" ? statsRaw[statsKey] : {};
+        statsRaw[statsKey] = {
+          completed: (Number(row.completed) || 0) + 1,
+          rating_sum: Number(row.rating_sum) || 0,
+          rating_count: Number(row.rating_count) || 0
+        };
+        localStorage.setItem(statsStore, JSON.stringify(statsRaw));
+
+        if (!isCustom) {
+          const lbStore = "teachmint_test_leaderboard_v1";
+          const lbRaw = JSON.parse(localStorage.getItem(lbStore) || "{}");
+          const arr = Array.isArray(lbRaw[statsKey]) ? lbRaw[statsKey] : [];
+          arr.push({
+            name: userName || "Learner",
+            score: correctCount,
+            total: questions.length,
+            at: Date.now()
+          });
+          arr.sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+          lbRaw[statsKey] = arr.slice(0, 100);
+          localStorage.setItem(lbStore, JSON.stringify(lbRaw));
+        }
+      } catch {}
+    }
+
+    function renderRatingUI() {
+      if (ratingSaved || !statsKey) return;
+      const wrap = document.createElement("div");
+      wrap.className = "rating-wrap";
+      wrap.innerHTML = `
+        <div class="rating-title">Rate this mock test</div>
+        <div class="stars" id="stars"></div>
+        <button id="submitRating" class="rating-submit" type="button">Submit Rating</button>
+        <div id="ratingNote" class="rating-note"></div>
+      `;
+      emptyEl.appendChild(wrap);
+
+      const stars = wrap.querySelector("#stars");
+      const note = wrap.querySelector("#ratingNote");
+      for (let i = 1; i <= 5; i += 1) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "star-btn";
+        btn.textContent = "★";
+        btn.addEventListener("click", () => {
+          selectedRating = i;
+          const all = stars.querySelectorAll(".star-btn");
+          all.forEach((node, idx) => node.classList.toggle("active", idx < i));
+        });
+        stars.appendChild(btn);
+      }
+
+      wrap.querySelector("#submitRating").addEventListener("click", () => {
+        if (ratingSaved) return;
+        if (!selectedRating) {
+          note.textContent = "Select a rating first.";
+          return;
+        }
+        try {
+          const statsStore = "teachmint_test_stats_v2";
+          const statsRaw = JSON.parse(localStorage.getItem(statsStore) || "{}");
+          const row = statsRaw && typeof statsRaw[statsKey] === "object" ? statsRaw[statsKey] : {};
+          statsRaw[statsKey] = {
+            completed: Number(row.completed) || 0,
+            rating_sum: (Number(row.rating_sum) || 0) + selectedRating,
+            rating_count: (Number(row.rating_count) || 0) + 1
+          };
+          localStorage.setItem(statsStore, JSON.stringify(statsRaw));
+          ratingSaved = true;
+          note.textContent = "Thanks for your rating.";
+        } catch {
+          note.textContent = "Could not save rating. Try again.";
+        }
+      });
+    }
+
     function finishTest(message) {
       if (timerHandle) {
         clearInterval(timerHandle);
         timerHandle = null;
       }
-      if (!completionSaved && statsKey) {
-        completionSaved = true;
-        try {
-          const storeKey = "teachmint_test_stats_v2";
-          const raw = JSON.parse(localStorage.getItem(storeKey) || "{}");
-          const row = raw && typeof raw[statsKey] === "object" ? raw[statsKey] : {};
-          raw[statsKey] = {
-            completed: (Number(row.completed) || 0) + 1,
-            rating_sum: Number(row.rating_sum) || 0,
-            rating_count: Number(row.rating_count) || 0
-          };
-          localStorage.setItem(storeKey, JSON.stringify(raw));
-        } catch {}
-      }
-      showEmpty(message);
+      persistCompletion();
+      const scoreMsg = `${message} Your score: ${correctCount}/${questions.length}.`;
+      showEmpty(scoreMsg);
+
+      const actions = document.createElement("div");
+      actions.className = "result-actions";
+      actions.innerHTML = `<a class="back" href="test-series.html?exam=${encodeURIComponent(exam)}">Return to Test Series</a>${isCustom ? "" : `<a class="back" href="test-leaderboard.html?exam=${encodeURIComponent(exam)}&test_id=${encodeURIComponent(testId)}&title=${encodeURIComponent(testTitle)}&stats_key=${encodeURIComponent(statsKey)}">View Leaderboard</a>`}`;
+      emptyEl.appendChild(actions);
+
+      renderRatingUI();
     }
 
     function next() {
       if (index >= questions.length - 1) {
-        finishTest("Test complete. Return to Test Series for another mock.");
+        finishTest("Test complete.");
         return;
       }
       index += 1;
