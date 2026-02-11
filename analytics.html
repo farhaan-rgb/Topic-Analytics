@@ -234,10 +234,11 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
   <script>
-    const SESSION_KEY = "pq_session_v1";
-    const FILES_KEY = "pq_files_v1";
-    const ANALYTICS_KEY = "pq_analytics_v1";
+    const api = window.teachmintApi;
 
     const fileTitleEl = document.getElementById("fileTitle");
     const fileMetaEl = document.getElementById("fileMeta");
@@ -245,17 +246,6 @@
 
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-    const email = localStorage.getItem(SESSION_KEY);
-
-    function getAllFiles() {
-      try { return JSON.parse(localStorage.getItem(FILES_KEY) || "[]"); }
-      catch { return []; }
-    }
-
-    function getAnalyticsStore() {
-      try { return JSON.parse(localStorage.getItem(ANALYTICS_KEY) || "{}"); }
-      catch { return {}; }
-    }
 
     function showEmpty(message) {
       contentEl.innerHTML = `<div class=\"empty\">${message}</div>`;
@@ -292,24 +282,46 @@
       `;
     }
 
-    if (!email) {
-      fileTitleEl.textContent = "Session expired";
-      showEmpty("Please login again from Home.");
-    } else if (!id) {
-      fileTitleEl.textContent = "Missing file";
-      showEmpty("No file id was provided.");
-    } else {
-      const file = getAllFiles().find((f) => f.id === id && f.email === email);
-      if (!file) {
-        fileTitleEl.textContent = "File not found";
-        showEmpty("This file is not available for the current user.");
-      } else {
+    async function init() {
+      if (!api || !api.isConfigured()) {
+        fileTitleEl.textContent = "Configuration missing";
+        showEmpty("Configure Supabase URL and key in supabase-config.js");
+        return;
+      }
+
+      if (!id) {
+        fileTitleEl.textContent = "Missing file";
+        showEmpty("No file id was provided.");
+        return;
+      }
+
+      let user = null;
+      try {
+        user = await api.getCurrentUser();
+      } catch (err) {
+        fileTitleEl.textContent = "Session error";
+        showEmpty(err.message || "Could not validate session.");
+        return;
+      }
+
+      if (!user) {
+        fileTitleEl.textContent = "Session expired";
+        showEmpty("Please login again from Home.");
+        return;
+      }
+
+      try {
+        const file = await api.getFileById(user.id, id);
+        if (!file) {
+          fileTitleEl.textContent = "File not found";
+          showEmpty("This file is not available for the current user.");
+          return;
+        }
+
         fileTitleEl.textContent = String(file.name || "").replace(/\.[^./\\]+$/, "");
         fileMetaEl.textContent = "";
 
-        const store = getAnalyticsStore();
-        const key = `${email}::${file.id}`;
-        const raw = store[key];
+        const raw = await api.getProgress(user.id, file.id);
         const getSetSize = (arr) => new Set(Array.isArray(arr) ? arr : []).size;
         const sumTimeMs = (obj) => {
           if (!obj || typeof obj !== "object") return 0;
@@ -332,7 +344,7 @@
         const timeScore = (avgSec) => {
           if (avgSec <= 1) return 100;
           if (avgSec >= 5) return 0;
-          return Math.round((5 - avgSec) / 4 * 100);
+          return Math.round(((5 - avgSec) / 4) * 100);
         };
 
         const practiceCompletion = completionPct(practiceAttempted);
@@ -420,8 +432,13 @@
             chartView.classList.toggle("hidden", showNumbers);
           });
         }
+      } catch (err) {
+        fileTitleEl.textContent = "Load failed";
+        showEmpty(err.message || "Could not load analytics.");
       }
     }
+
+    init();
   </script>
 </body>
 </html>

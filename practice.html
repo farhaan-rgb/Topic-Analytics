@@ -342,12 +342,11 @@
     <section id="emptySection" class="empty hidden"></section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
   <script>
-    const SESSION_KEY = "pq_session_v1";
-    const FILES_KEY = "pq_files_v1";
-    const PRACTICE_PROGRESS_KEY = "pq_practice_progress_v1";
-    const ANALYTICS_KEY = "pq_analytics_v1";
-    const RESET_MARKER_KEY = "pq_reset_farhaan_done_v12";
+    const api = window.teachmintApi;
 
     const titleEl = document.getElementById("title");
     const metaEl = document.getElementById("meta");
@@ -376,118 +375,25 @@
     let firstTryCorrectSet = new Set();
     let reviewAttemptedSet = new Set();
     let reviewFirstTryCorrectSet = new Set();
+    let practiceTimeByQuestion = {};
+    let reviewTimeByQuestion = {};
     let questionStartTs = 0;
+    let currentUser = null;
 
-    function getAllFiles() {
-      try { return JSON.parse(localStorage.getItem(FILES_KEY) || "[]"); }
-      catch { return []; }
-    }
-
-    function getPracticeProgressStore() {
-      try { return JSON.parse(localStorage.getItem(PRACTICE_PROGRESS_KEY) || "{}"); }
-      catch { return {}; }
-    }
-
-    function getAnalyticsStore() {
-      try { return JSON.parse(localStorage.getItem(ANALYTICS_KEY) || "{}"); }
-      catch { return {}; }
-    }
-
-    function savePracticeProgressStore(store) {
-      localStorage.setItem(PRACTICE_PROGRESS_KEY, JSON.stringify(store));
-    }
-
-    function saveAnalyticsStore(store) {
-      localStorage.setItem(ANALYTICS_KEY, JSON.stringify(store));
-    }
-
-    function resetProgressForFarhaanIfNeeded(email) {
-      if (email !== "farhaan@teachmint.com") return;
-      if (localStorage.getItem(RESET_MARKER_KEY) === "1") return;
-
-      const store = getPracticeProgressStore();
-      const analytics = getAnalyticsStore();
-      const prefix = `${email}::`;
-      let changed = false;
-      let analyticsChanged = false;
-      for (const key of Object.keys(store)) {
-        if (key.startsWith(prefix)) {
-          delete store[key];
-          changed = true;
-        }
-      }
-      for (const key of Object.keys(analytics)) {
-        if (key.startsWith(prefix)) {
-          delete analytics[key];
-          analyticsChanged = true;
-        }
-      }
-      if (changed) {
-        savePracticeProgressStore(store);
-      }
-      if (analyticsChanged) {
-        saveAnalyticsStore(analytics);
-      }
-      localStorage.setItem(RESET_MARKER_KEY, "1");
-    }
-
-    function progressKey(email, fileId) {
-      return `${email}::${fileId}`;
-    }
-
-    function recordAnswer(email, fileId, index, isCorrect) {
-      const store = getPracticeProgressStore();
-      const key = progressKey(email, fileId);
-      const raw = store[key];
-      const attempts = new Set(
-        Array.isArray(raw) ? raw : (raw && Array.isArray(raw.attempted) ? raw.attempted : [])
-      );
-      const correct = new Set(raw && Array.isArray(raw.correct) ? raw.correct : []);
-
-      attempts.add(index);
-      if (isCorrect) correct.add(index);
-
-      store[key] = { attempted: [...attempts], correct: [...correct] };
-      savePracticeProgressStore(store);
-      attemptedSet = attempts;
-      correctSet = correct;
-    }
-
-    function recordPhaseAttempt(email, fileId, phase, index, isCorrect, elapsedMs) {
-      const store = getAnalyticsStore();
-      const key = progressKey(email, fileId);
-      const raw = store[key];
-      const attemptedKey = `${phase}_attempted`;
-      const firstTryKey = `${phase}_first_try_correct`;
-      const timeByQuestionKey = `${phase}_time_ms_by_question`;
-
-      const attempted = new Set(raw && Array.isArray(raw[attemptedKey]) ? raw[attemptedKey] : []);
-      const firstTryCorrect = new Set(raw && Array.isArray(raw[firstTryKey]) ? raw[firstTryKey] : []);
-      const timeByQuestion = raw && raw[timeByQuestionKey] && typeof raw[timeByQuestionKey] === "object" ? raw[timeByQuestionKey] : {};
-
-      const isFirstAttemptInPhase = !attempted.has(index);
-      attempted.add(index);
-      if (isFirstAttemptInPhase && isCorrect) {
-        firstTryCorrect.add(index);
-      }
-      if (isFirstAttemptInPhase) {
-        timeByQuestion[String(index)] = Math.max(0, Math.round(elapsedMs || 0));
-      }
-
-      store[key] = {
-        ...(raw && typeof raw === "object" ? raw : {}),
-        [attemptedKey]: [...attempted],
-        [firstTryKey]: [...firstTryCorrect],
-        [timeByQuestionKey]: timeByQuestion
-      };
-      saveAnalyticsStore(store);
-
-      if (phase === "practice") {
-        attemptedSet = attempted;
-        firstTryCorrectSet = firstTryCorrect;
-      } else {
-        reviewAttemptedSet = attempted;
-        reviewFirstTryCorrectSet = firstTryCorrect;
+    async function persistProgress() {
+      if (!api || !api.isConfigured() || !currentUser || !file) return;
+      try {
+        await api.upsertProgress(currentUser.id, file.id, {
+          practice_attempted: [...attemptedSet],
+          practice_correct: [...correctSet],
+          practice_first_try_correct: [...firstTryCorrectSet],
+          practice_time_ms_by_question: practiceTimeByQuestion,
+          review_attempted: [...reviewAttemptedSet],
+          review_first_try_correct: [...reviewFirstTryCorrectSet],
+          review_time_ms_by_question: reviewTimeByQuestion
+        });
+      } catch {
+        // Keep quiz flow running even if persistence temporarily fails.
       }
     }
 
@@ -600,7 +506,7 @@
       });
     }
 
-    function evaluateCurrent() {
+    async function evaluateCurrent() {
       if (!selectedChoice) {
         return;
       }
@@ -614,14 +520,23 @@
       if (isCorrect && firstAttemptInRun) {
         runFirstAttemptCorrectCount += 1;
       }
-      if (file && file.id) {
-        if (pageMode === "practice") {
-          recordAnswer(email, file.id, currentIndex, isCorrect);
-          recordPhaseAttempt(email, file.id, "practice", currentIndex, isCorrect, elapsedMs);
-        } else {
-          recordPhaseAttempt(email, file.id, "review", currentIndex, isCorrect, elapsedMs);
+      if (pageMode === "practice") {
+        const isFirstPracticeAttempt = !attemptedSet.has(currentIndex);
+        attemptedSet.add(currentIndex);
+        if (isCorrect) correctSet.add(currentIndex);
+        if (isFirstPracticeAttempt && isCorrect) firstTryCorrectSet.add(currentIndex);
+        if (isFirstPracticeAttempt) {
+          practiceTimeByQuestion[String(currentIndex)] = Math.max(0, Math.round(elapsedMs || 0));
+        }
+      } else {
+        const isFirstReviewAttempt = !reviewAttemptedSet.has(currentIndex);
+        reviewAttemptedSet.add(currentIndex);
+        if (isFirstReviewAttempt && isCorrect) reviewFirstTryCorrectSet.add(currentIndex);
+        if (isFirstReviewAttempt) {
+          reviewTimeByQuestion[String(currentIndex)] = Math.max(0, Math.round(elapsedMs || 0));
         }
       }
+      await persistProgress();
 
       Array.from(optionsEl.children).forEach((node) => {
         const isAnswer = node.dataset.choice.toLowerCase() === String(q.answer).toLowerCase();
@@ -663,9 +578,9 @@
       renderQuestion();
     }
 
-    actionBtn.addEventListener("click", () => {
+    actionBtn.addEventListener("click", async () => {
       if (!evaluated) {
-        evaluateCurrent();
+        await evaluateCurrent();
       } else {
         goNext();
       }
@@ -674,54 +589,91 @@
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
     const modeParam = params.get("mode");
-    const email = localStorage.getItem(SESSION_KEY);
     pageMode = modeParam === "review" ? "review" : "practice";
-    if (email) resetProgressForFarhaanIfNeeded(email);
 
-    if (!email) {
-      titleEl.textContent = "Session expired";
-      metaEl.textContent = "Please login again.";
-      showEmpty("Open index.html and login, then start Practice again.");
-    } else if (!id) {
-      titleEl.textContent = "Missing file";
-      showEmpty("No file id was provided.");
-    } else {
-      file = getAllFiles().find((f) => f.id === id && f.email === email);
-      if (!file) {
-        titleEl.textContent = "File not found";
-        showEmpty("This file is not available for the current user.");
-      } else {
+    async function init() {
+      if (!api || !api.isConfigured()) {
+        titleEl.textContent = "Configuration missing";
+        showEmpty("Configure Supabase URL and key in supabase-config.js");
+        return;
+      }
+
+      if (!id) {
+        titleEl.textContent = "Missing file";
+        showEmpty("No file id was provided.");
+        return;
+      }
+
+      try {
+        currentUser = await api.getCurrentUser();
+      } catch (err) {
+        titleEl.textContent = "Session error";
+        showEmpty(err.message || "Could not validate session.");
+        return;
+      }
+
+      if (!currentUser) {
+        titleEl.textContent = "Session expired";
+        metaEl.textContent = "Please login again.";
+        showEmpty("Open index.html and login, then start Practice again.");
+        return;
+      }
+
+      try {
+        const dbFile = await api.getFileById(currentUser.id, id);
+        if (!dbFile) {
+          titleEl.textContent = "File not found";
+          showEmpty("This file is not available for the current user.");
+          return;
+        }
+
+        file = {
+          id: dbFile.id,
+          name: dbFile.name,
+          uploadedAt: dbFile.uploaded_at,
+          questions: Array.isArray(dbFile.questions) ? dbFile.questions : []
+        };
+
         titleEl.textContent = file.name;
         metaEl.textContent = `Uploaded ${new Date(file.uploadedAt).toLocaleString()}`;
-        questions = Array.isArray(file.questions) ? file.questions.slice(0, 10) : [];
-        const store = getPracticeProgressStore();
-        const key = progressKey(email, file.id);
-        const raw = store[key];
-        attemptedSet = new Set(
-          Array.isArray(raw) ? raw : (raw && Array.isArray(raw.attempted) ? raw.attempted : [])
-        );
-        correctSet = new Set(raw && Array.isArray(raw.correct) ? raw.correct : []);
-        const analyticsRaw = getAnalyticsStore()[key];
-        firstTryCorrectSet = new Set(analyticsRaw && Array.isArray(analyticsRaw.practice_first_try_correct) ? analyticsRaw.practice_first_try_correct : []);
-        reviewAttemptedSet = new Set(analyticsRaw && Array.isArray(analyticsRaw.review_attempted) ? analyticsRaw.review_attempted : []);
-        reviewFirstTryCorrectSet = new Set(analyticsRaw && Array.isArray(analyticsRaw.review_first_try_correct) ? analyticsRaw.review_first_try_correct : []);
+        questions = file.questions.slice(0, 10);
+
+        const progress = await api.getProgress(currentUser.id, file.id);
+        attemptedSet = new Set(progress && Array.isArray(progress.practice_attempted) ? progress.practice_attempted : []);
+        correctSet = new Set(progress && Array.isArray(progress.practice_correct) ? progress.practice_correct : []);
+        firstTryCorrectSet = new Set(progress && Array.isArray(progress.practice_first_try_correct) ? progress.practice_first_try_correct : []);
+        practiceTimeByQuestion = progress && progress.practice_time_ms_by_question && typeof progress.practice_time_ms_by_question === "object"
+          ? progress.practice_time_ms_by_question
+          : {};
+        reviewAttemptedSet = new Set(progress && Array.isArray(progress.review_attempted) ? progress.review_attempted : []);
+        reviewFirstTryCorrectSet = new Set(progress && Array.isArray(progress.review_first_try_correct) ? progress.review_first_try_correct : []);
+        reviewTimeByQuestion = progress && progress.review_time_ms_by_question && typeof progress.review_time_ms_by_question === "object"
+          ? progress.review_time_ms_by_question
+          : {};
 
         if (!questions.length) {
           showEmpty("No questions were generated for this file.");
-        } else {
-          runAttemptedSet = new Set();
-          runFirstAttemptCorrectCount = 0;
-          buildQueue();
-          if (!queue.length) {
-            showComplete();
-          } else {
-            questionSection.classList.remove("hidden");
-            emptySection.classList.add("hidden");
-            renderQuestion();
-          }
+          return;
         }
+
+        runAttemptedSet = new Set();
+        runFirstAttemptCorrectCount = 0;
+        buildQueue();
+        if (!queue.length) {
+          showComplete();
+          return;
+        }
+
+        questionSection.classList.remove("hidden");
+        emptySection.classList.add("hidden");
+        renderQuestion();
+      } catch (err) {
+        titleEl.textContent = "Load failed";
+        showEmpty(err.message || "Could not load this practice session.");
       }
     }
+
+    init();
   </script>
 </body>
 </html>

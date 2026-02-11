@@ -373,14 +373,12 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script>
-    const USERS_KEY = "pq_users_v1";
-    const SESSION_KEY = "pq_session_v1";
-    const FILES_KEY = "pq_files_v1";
-    const PRACTICE_PROGRESS_KEY = "pq_practice_progress_v1";
-    const ANALYTICS_KEY = "pq_analytics_v1";
-    const RESET_MARKER_KEY = "pq_reset_farhaan_done_v12";
+    const api = window.teachmintApi;
 
     const authRoot = document.getElementById("authRoot");
     const appRoot = document.getElementById("appRoot");
@@ -398,8 +396,9 @@
     const fileGroupsEl = document.getElementById("fileGroups");
     const emptyState = document.getElementById("emptyState");
 
-    let currentUserEmail = "";
+    let currentUser = null;
     let currentFiles = [];
+    let progressByFileId = {};
 
     const stopWords = new Set([
       "the", "and", "for", "with", "that", "this", "from", "into", "your", "their", "there", "which", "about", "were", "when", "where",
@@ -420,114 +419,12 @@
       authStatusEl.className = `status ${type}`.trim();
     }
 
-    function getUsers() {
-      try { return JSON.parse(localStorage.getItem(USERS_KEY) || "[]"); }
-      catch { return []; }
-    }
-
-    function saveUsers(users) {
-      localStorage.setItem(USERS_KEY, JSON.stringify(users));
-    }
-
-    function getAllFiles() {
-      try { return JSON.parse(localStorage.getItem(FILES_KEY) || "[]"); }
-      catch { return []; }
-    }
-
-    function saveAllFiles(files) {
-      localStorage.setItem(FILES_KEY, JSON.stringify(files));
-    }
-
-    function getPracticeProgressStore() {
-      try { return JSON.parse(localStorage.getItem(PRACTICE_PROGRESS_KEY) || "{}"); }
-      catch { return {}; }
-    }
-
-    function getAnalyticsStore() {
-      try { return JSON.parse(localStorage.getItem(ANALYTICS_KEY) || "{}"); }
-      catch { return {}; }
-    }
-
-    function getAttemptedCount(email, fileId) {
-      const store = getPracticeProgressStore();
-      const key = `${email}::${fileId}`;
-      const raw = store[key];
-      const attempted = Array.isArray(raw)
-        ? raw
-        : (raw && Array.isArray(raw.attempted) ? raw.attempted : []);
-      return Math.min(10, new Set(attempted).size);
-    }
-
-    function getCorrectCount(email, fileId) {
-      const store = getPracticeProgressStore();
-      const key = `${email}::${fileId}`;
-      const raw = store[key];
-      const correct = raw && Array.isArray(raw.correct) ? raw.correct : [];
-      return Math.min(10, new Set(correct).size);
-    }
-
-    function getPracticeUniqueAttemptedCount(email, fileId) {
-      const store = getAnalyticsStore();
-      const key = `${email}::${fileId}`;
-      const raw = store[key];
-      const attempted = raw && Array.isArray(raw.practice_attempted) ? raw.practice_attempted : [];
-      return new Set(attempted).size;
-    }
-
-    function resetProgressForFarhaanIfNeeded(email) {
-      if (email !== "farhaan@teachmint.com") return;
-      if (localStorage.getItem(RESET_MARKER_KEY) === "1") return;
-
-      const store = getPracticeProgressStore();
-      const analytics = getAnalyticsStore();
-      const prefix = `${email}::`;
-      let changed = false;
-      let analyticsChanged = false;
-      for (const key of Object.keys(store)) {
-        if (key.startsWith(prefix)) {
-          delete store[key];
-          changed = true;
-        }
-      }
-      for (const key of Object.keys(analytics)) {
-        if (key.startsWith(prefix)) {
-          delete analytics[key];
-          analyticsChanged = true;
-        }
-      }
-      if (changed) {
-        localStorage.setItem(PRACTICE_PROGRESS_KEY, JSON.stringify(store));
-      }
-      if (analyticsChanged) {
-        localStorage.setItem(ANALYTICS_KEY, JSON.stringify(analytics));
-      }
-      localStorage.setItem(RESET_MARKER_KEY, "1");
-    }
-
     function displayNameWithoutExtension(fileName) {
       return String(fileName || "").replace(/\.[^./\\]+$/, "");
     }
 
-    function setSession(email) {
-      localStorage.setItem(SESSION_KEY, email);
-    }
-
-    function clearSession() {
-      localStorage.removeItem(SESSION_KEY);
-    }
-
-    function getSession() {
-      return localStorage.getItem(SESSION_KEY);
-    }
-
     function isValidEmail(email) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    }
-
-    async function hashPassword(email, password) {
-      const data = new TextEncoder().encode(`${email}::${password}`);
-      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-      return Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, "0")).join("");
     }
 
     function cleanText(raw) {
@@ -657,20 +554,47 @@
       authForm.reset();
       setStatus("");
       setAuthStatus("");
-      currentUserEmail = "";
+      currentUser = null;
       currentFiles = [];
+      progressByFileId = {};
     }
 
-    function showApp(email) {
-      resetProgressForFarhaanIfNeeded(email);
-      currentUserEmail = email;
-      currentFiles = getAllFiles().filter((f) => f.email === email);
+    async function loadLibraryData() {
+      if (!currentUser) return;
+      const dbFiles = await api.listFiles(currentUser.id);
+      currentFiles = dbFiles.map((row) => ({
+        id: row.id,
+        name: row.name,
+        uploadedAt: row.uploaded_at,
+        text: row.text_content,
+        questions: Array.isArray(row.questions) ? row.questions : []
+      }));
+      const progressRows = await api.listProgressForFiles(currentUser.id, currentFiles.map((f) => f.id));
+      progressByFileId = {};
+      for (const row of progressRows) {
+        progressByFileId[row.file_id] = row;
+      }
+    }
+
+    async function showApp(user) {
+      currentUser = user;
       authRoot.classList.add("hidden");
       appRoot.classList.remove("hidden");
-      welcomeText.textContent = `Signed in as ${email}`;
+      welcomeText.textContent = `Signed in as ${user.email || "user"}`;
       fileSearch.value = "";
+      await loadLibraryData();
       renderFiles();
       setStatus("");
+    }
+
+    function getAttemptedCount(fileId) {
+      const row = progressByFileId[fileId];
+      return new Set(row && Array.isArray(row.practice_attempted) ? row.practice_attempted : []).size;
+    }
+
+    function getCorrectCount(fileId) {
+      const row = progressByFileId[fileId];
+      return new Set(row && Array.isArray(row.practice_correct) ? row.practice_correct : []).size;
     }
 
     function renderFiles() {
@@ -715,8 +639,8 @@
             window.location.href = `review.html?id=${encodeURIComponent(file.id)}`;
           });
 
-          const attemptedCount = getAttemptedCount(currentUserEmail, file.id);
-          const correctCount = getCorrectCount(currentUserEmail, file.id);
+          const attemptedCount = getAttemptedCount(file.id);
+          const correctCount = getCorrectCount(file.id);
           const progressPercent = Math.round((attemptedCount / 10) * 100);
           const isMastered = correctCount >= 10;
 
@@ -752,6 +676,11 @@
 
     authForm.addEventListener("submit", async (event) => {
       event.preventDefault();
+      if (!api || !api.isConfigured()) {
+        setAuthStatus("Supabase is not configured. Set values in supabase-config.js", "error");
+        return;
+      }
+
       const email = authEmail.value.trim().toLowerCase();
       const password = authPassword.value;
 
@@ -765,33 +694,34 @@
         return;
       }
 
-      const users = getUsers();
-      const account = users.find((user) => user.email === email);
-
-      if (!account) {
-        const passwordHashForNew = await hashPassword(email, password);
-        users.push({ email, passwordHash: passwordHashForNew });
-        saveUsers(users);
-        setSession(email);
-        setAuthStatus("Account created and signed in.", "ok");
-        showApp(email);
-        return;
+      try {
+        const result = await api.signInOrCreate(email, password);
+        if (!result.ok) {
+          if (result.reason === "wrong_password") {
+            setAuthStatus("Wrong password.", "error");
+            return;
+          }
+          if (result.reason === "email_confirmation_required") {
+            setAuthStatus("Enable auto-confirm in Supabase Auth or confirm this email first.", "error");
+            return;
+          }
+          setAuthStatus(result.error?.message || "Login failed.", "error");
+          return;
+        }
+        authForm.reset();
+        setAuthStatus(result.created ? "Account created and signed in." : "", result.created ? "ok" : "");
+        await showApp(result.user);
+      } catch (err) {
+        setAuthStatus(err.message || "Login failed.", "error");
       }
-
-      const passwordHash = await hashPassword(email, password);
-      if (passwordHash !== account.passwordHash) {
-        setAuthStatus("Wrong password.", "error");
-        return;
-      }
-
-      setSession(email);
-      authForm.reset();
-      setAuthStatus("");
-      showApp(email);
     });
 
-    logoutBtn.addEventListener("click", () => {
-      clearSession();
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        if (api && api.isConfigured()) {
+          await api.signOut();
+        }
+      } catch {}
       showAuth();
     });
 
@@ -802,7 +732,11 @@
     fileInput.addEventListener("change", async () => {
       const file = fileInput.files[0];
       fileInput.value = "";
-      if (!file || !currentUserEmail) return;
+      if (!file || !currentUser) return;
+      if (!api || !api.isConfigured()) {
+        setStatus("Supabase is not configured. Set values in supabase-config.js", "error");
+        return;
+      }
 
       setStatus("Uploading and generating 10 MCQ questions...");
       uploadBtn.disabled = true;
@@ -822,18 +756,17 @@
           return;
         }
 
-        const allFiles = getAllFiles();
-        allFiles.push({
-          id: `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`,
-          email: currentUserEmail,
+        await api.createFile(currentUser.id, {
+          id: (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function")
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`,
           name: file.name,
-          uploadedAt: new Date().toISOString(),
-          text: extractedText,
+          uploaded_at: new Date().toISOString(),
+          text_content: extractedText,
           questions: generated.questions
         });
-        saveAllFiles(allFiles);
 
-        currentFiles = allFiles.filter((f) => f.email === currentUserEmail);
+        await loadLibraryData();
         renderFiles();
         setStatus(`Uploaded ${file.name}. Generated 10 MCQ questions.`, "ok");
       } catch (err) {
@@ -843,14 +776,25 @@
       }
     });
 
-    const existingSession = getSession();
-    const sessionExists = existingSession && getUsers().some((user) => user.email === existingSession);
-    if (sessionExists) {
-      showApp(existingSession);
-    } else {
-      clearSession();
+    async function init() {
       showAuth();
+      if (!api || !api.isConfigured()) {
+        setAuthStatus("Configure Supabase URL and key in supabase-config.js", "error");
+        return;
+      }
+      try {
+        const user = await api.getCurrentUser();
+        if (user) {
+          await showApp(user);
+        } else {
+          showAuth();
+        }
+      } catch (err) {
+        setAuthStatus(err.message || "Failed to initialize session.", "error");
+      }
     }
+
+    init();
   </script>
 </body>
 </html>

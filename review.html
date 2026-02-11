@@ -66,9 +66,11 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
   <script>
-    const SESSION_KEY = "pq_session_v1";
-    const FILES_KEY = "pq_files_v1";
+    const api = window.teachmintApi;
 
     const titleEl = document.getElementById("title");
     const metaEl = document.getElementById("meta");
@@ -76,34 +78,59 @@
 
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-    const email = localStorage.getItem(SESSION_KEY);
 
-    function getAllFiles() {
-      try { return JSON.parse(localStorage.getItem(FILES_KEY) || "[]"); }
-      catch { return []; }
-    }
-
-    if (!email) {
-      titleEl.textContent = "Session expired";
-      metaEl.textContent = "Please login again.";
-      contentEl.className = "content empty";
-      contentEl.textContent = "Open index.html and login, then open Quick Review again.";
-    } else if (!id) {
-      titleEl.textContent = "Missing file";
-      contentEl.className = "content empty";
-      contentEl.textContent = "No file id was provided.";
-    } else {
-      const file = getAllFiles().find((f) => f.id === id && f.email === email);
-      if (!file) {
-        titleEl.textContent = "File not found";
+    async function init() {
+      if (!api || !api.isConfigured()) {
+        titleEl.textContent = "Configuration missing";
         contentEl.className = "content empty";
-        contentEl.textContent = "This file is not available for the current user.";
-      } else {
+        contentEl.textContent = "Configure Supabase URL and key in supabase-config.js";
+        return;
+      }
+
+      if (!id) {
+        titleEl.textContent = "Missing file";
+        contentEl.className = "content empty";
+        contentEl.textContent = "No file id was provided.";
+        return;
+      }
+
+      let user = null;
+      try {
+        user = await api.getCurrentUser();
+      } catch (err) {
+        titleEl.textContent = "Session error";
+        contentEl.className = "content empty";
+        contentEl.textContent = err.message || "Could not validate session.";
+        return;
+      }
+
+      if (!user) {
+        titleEl.textContent = "Session expired";
+        metaEl.textContent = "Please login again.";
+        contentEl.className = "content empty";
+        contentEl.textContent = "Open index.html and login, then open Quick Review again.";
+        return;
+      }
+
+      try {
+        const file = await api.getFileById(user.id, id);
+        if (!file) {
+          titleEl.textContent = "File not found";
+          contentEl.className = "content empty";
+          contentEl.textContent = "This file is not available for the current user.";
+          return;
+        }
         titleEl.textContent = file.name;
-        metaEl.textContent = `Uploaded: ${new Date(file.uploadedAt).toLocaleString()}`;
-        contentEl.textContent = file.text || "No readable text content found.";
+        metaEl.textContent = `Uploaded: ${new Date(file.uploaded_at).toLocaleString()}`;
+        contentEl.textContent = file.text_content || "No readable text content found.";
+      } catch (err) {
+        titleEl.textContent = "Load failed";
+        contentEl.className = "content empty";
+        contentEl.textContent = err.message || "Could not load this file.";
       }
     }
+
+    init();
   </script>
 </body>
 </html>
