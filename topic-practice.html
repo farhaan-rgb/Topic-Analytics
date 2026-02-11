@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Topic Practice - Teachmint</title>
+  <style>
+    :root {
+      --bg-top: #123055;
+      --bg-main: #08111f;
+      --panel: #173556;
+      --option: #26384c;
+      --option-border: #3b4f66;
+      --text: #eef3ff;
+      --muted: #a8b5ca;
+      --ok: #4ad69f;
+      --bad: #ff7fa3;
+      --btn: #2a7ac2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Poppins", "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, var(--bg-top) 0%, #0d213a 32%, var(--bg-main) 100%);
+      min-height: 100vh;
+      padding: 0.9rem;
+    }
+    .container { width: min(760px, 96vw); margin: 0 auto; }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 0.85rem;
+    }
+    .back {
+      border: 1px solid #4a6380;
+      background: rgba(16, 34, 56, 0.85);
+      color: #eef4ff;
+      border-radius: 11px;
+      padding: 0.5rem 0.72rem;
+      text-decoration: none;
+      font-size: 0.92rem;
+    }
+    .progress {
+      color: #c7d5e9;
+      font-size: 0.95rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .topic {
+      border: 1px solid rgba(167, 196, 228, 0.2);
+      background: linear-gradient(180deg, rgba(29, 66, 106, 0.85), rgba(21, 47, 75, 0.85));
+      border-radius: 14px;
+      padding: 0.95rem;
+      margin-bottom: 0.95rem;
+    }
+    .topic h1 { margin: 0; font-size: clamp(1.2rem, 4.1vw, 1.75rem); line-height: 1.25; }
+    .topic .meta { margin-top: 0.35rem; color: var(--muted); font-size: 0.9rem; }
+    .q-text {
+      margin: 0 0 0.95rem;
+      font-size: clamp(1.35rem, 4.4vw, 2.05rem);
+      font-weight: 600;
+      line-height: 1.27;
+      color: #f6f8ff;
+    }
+    .options { display: grid; gap: 0.72rem; }
+    .opt {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--option-border);
+      border-radius: 13px;
+      background: var(--option);
+      color: #edf2ff;
+      padding: 0.78rem 0.82rem;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.72rem;
+    }
+    .opt-tag {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #41566e;
+      color: #ecf3ff;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .opt.correct { border-color: var(--ok); background: #20483f; }
+    .opt.wrong { border-color: var(--bad); background: #4a2734; }
+    .opt.selected { border-color: #8ec3ff; background: #30465e; }
+    .footer { margin-top: 1rem; display: flex; justify-content: center; }
+    .action {
+      border: 0;
+      border-radius: 10px;
+      padding: 0.55rem 0.85rem;
+      cursor: pointer;
+      background: var(--btn);
+      color: white;
+      font-weight: 600;
+    }
+    .action:disabled { opacity: 0.55; cursor: not-allowed; }
+    .empty {
+      border: 1px solid rgba(167, 196, 228, 0.2);
+      border-radius: 14px;
+      padding: 1rem;
+      background: rgba(25, 49, 78, 0.55);
+      color: #dbe5f8;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="top">
+      <a class="back" href="index.html?tab=practice">Back</a>
+      <div id="progress" class="progress">Question 0 / 10</div>
+    </div>
+
+    <section class="topic">
+      <h1 id="title">Loading...</h1>
+      <div id="meta" class="meta"></div>
+    </section>
+
+    <section id="quiz">
+      <p id="questionText" class="q-text"></p>
+      <div id="options" class="options"></div>
+      <div class="footer">
+        <button id="actionBtn" class="action" type="button" disabled>Check Answer</button>
+      </div>
+    </section>
+
+    <section id="empty" class="empty" style="display:none;"></section>
+  </main>
+
+  <script src="curriculum-data.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const exam = (params.get("exam") || "").trim().toUpperCase();
+    const topic = (params.get("topic") || "").trim();
+
+    const titleEl = document.getElementById("title");
+    const metaEl = document.getElementById("meta");
+    const progressEl = document.getElementById("progress");
+    const questionTextEl = document.getElementById("questionText");
+    const optionsEl = document.getElementById("options");
+    const actionBtn = document.getElementById("actionBtn");
+    const quizEl = document.getElementById("quiz");
+    const emptyEl = document.getElementById("empty");
+
+    const optionTags = ["A", "B", "C", "D", "E", "F"];
+    let questions = [];
+    let index = 0;
+    let selectedChoice = null;
+    let evaluated = false;
+
+    function showEmpty(msg) {
+      quizEl.style.display = "none";
+      emptyEl.style.display = "block";
+      emptyEl.textContent = msg;
+      progressEl.textContent = "Question 0 / 0";
+    }
+
+    function renderQuestion() {
+      const q = questions[index];
+      selectedChoice = null;
+      evaluated = false;
+      progressEl.textContent = `Question ${index + 1} / ${questions.length}`;
+      questionTextEl.textContent = q.prompt;
+      actionBtn.textContent = "Check Answer";
+      actionBtn.disabled = true;
+      optionsEl.innerHTML = "";
+
+      q.choices.forEach((choice, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "opt";
+        btn.dataset.choice = choice;
+        btn.innerHTML = `<span class="opt-tag">${optionTags[idx] || idx + 1}</span><span>${choice}</span>`;
+        btn.addEventListener("click", () => {
+          if (evaluated) return;
+          selectedChoice = choice;
+          actionBtn.disabled = false;
+          Array.from(optionsEl.children).forEach((node) => node.classList.remove("selected"));
+          btn.classList.add("selected");
+        });
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    function evaluate() {
+      if (!selectedChoice) return;
+      evaluated = true;
+      const q = questions[index];
+      Array.from(optionsEl.children).forEach((node) => {
+        const isAnswer = node.dataset.choice === q.answer;
+        const isSelected = node.dataset.choice === selectedChoice;
+        if (isAnswer) node.classList.add("correct");
+        if (isSelected && !isAnswer) node.classList.add("wrong");
+      });
+      actionBtn.textContent = index >= questions.length - 1 ? "Finish" : "Next Question";
+    }
+
+    function next() {
+      if (index >= questions.length - 1) {
+        quizEl.style.display = "none";
+        emptyEl.style.display = "block";
+        emptyEl.textContent = "Practice complete. Return to Home to choose another topic.";
+        progressEl.textContent = `Question ${questions.length} / ${questions.length}`;
+        return;
+      }
+      index += 1;
+      renderQuestion();
+    }
+
+    actionBtn.addEventListener("click", () => {
+      if (!evaluated) evaluate();
+      else next();
+    });
+
+    const catalog = window.curriculumData && window.curriculumData.catalog ? window.curriculumData.catalog : {};
+    const isValid = exam && topic && catalog[exam] && catalog[exam].includes(topic);
+    if (!isValid || !window.curriculumData || typeof window.curriculumData.generateQuestions !== "function") {
+      titleEl.textContent = "Topic unavailable";
+      metaEl.textContent = "";
+      showEmpty("This topic is not available. Go back and try again.");
+    } else {
+      titleEl.textContent = topic;
+      metaEl.textContent = `${exam} • 10 Questions`;
+      questions = window.curriculumData.generateQuestions(exam, topic, 10);
+      renderQuestion();
+    }
+  </script>
+</body>
+</html>
