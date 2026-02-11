@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A/B Control - Teachmint</title>
+  <style>
+    :root {
+      --bg: #090f1d;
+      --panel: #171f35;
+      --line: #33436b;
+      --text: #eef3ff;
+      --muted: #aab6d8;
+      --ok: #45d39a;
+      --danger: #ff799f;
+      --brand: #2f9bf0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Poppins", "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(165deg, #0a1020 0%, #121d36 100%);
+      padding: 1rem;
+    }
+    .container { width: min(740px, 96vw); margin: 0 auto; }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 0.9rem;
+    }
+    .back {
+      border: 1px solid #45507b;
+      background: #1b2238;
+      color: #f1f4ff;
+      border-radius: 11px;
+      padding: 0.48rem 0.72rem;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      padding: 1rem;
+    }
+    h1 { margin: 0; font-size: clamp(1.2rem, 4vw, 1.7rem); }
+    h2 { margin: 0; font-size: 1.2rem; }
+    .muted { color: var(--muted); margin-top: 0.35rem; }
+    .form-grid {
+      margin-top: 1rem;
+      display: grid;
+      gap: 0.9rem;
+    }
+    label {
+      display: block;
+      color: #dce4ff;
+      font-size: 0.9rem;
+      margin-bottom: 0.35rem;
+    }
+    select,
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid #4a5d93;
+      border-radius: 10px;
+      background: #1f2847;
+      color: #f2f6ff;
+      padding: 0.65rem 0.7rem;
+      font: inherit;
+    }
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.6rem;
+      align-items: end;
+    }
+    .range-row .pct {
+      min-width: 80px;
+      text-align: right;
+      color: #dbe4ff;
+      font-weight: 600;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--brand);
+    }
+    .btn {
+      margin-top: 0.9rem;
+      border: 0;
+      border-radius: 11px;
+      padding: 0.65rem 0.92rem;
+      background: linear-gradient(135deg, #2f9bf0, #2377bc);
+      color: white;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+    }
+    .status { min-height: 1.1rem; margin-top: 0.85rem; font-size: 0.93rem; }
+    .status.error { color: var(--danger); }
+    .status.ok { color: var(--ok); }
+    .card {
+      margin-top: 0.9rem;
+      border: 1px solid rgba(114, 132, 186, 0.4);
+      border-radius: 12px;
+      background: rgba(22, 33, 63, 0.62);
+      padding: 0.72rem;
+      color: #dce5ff;
+      line-height: 1.45;
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="top">
+      <h1>A/B Control</h1>
+      <a class="back" href="index.html">Back</a>
+    </div>
+
+    <section class="panel">
+      <h2>Experiment Settings</h2>
+      <div class="muted">Select the feature and what percentage of users should be in test.</div>
+
+      <div class="form-grid">
+        <div>
+          <label for="featureSelect">Feature</label>
+          <select id="featureSelect">
+            <option value="analytics_library">Analytics (Library)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="percentInput">Users in test (%)</label>
+          <div class="range-row">
+            <input id="percentInput" type="range" min="0" max="100" step="1" value="50" />
+            <div class="pct"><span id="percentText">50</span>%</div>
+          </div>
+          <input id="percentNumber" type="number" min="0" max="100" step="1" value="50" />
+        </div>
+      </div>
+
+      <button id="saveBtn" class="btn" type="button">Save</button>
+      <div id="status" class="status"></div>
+      <div id="summary" class="card">Current setting: loading...</div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    const api = window.teachmintApi;
+
+    const featureSelect = document.getElementById("featureSelect");
+    const percentInput = document.getElementById("percentInput");
+    const percentNumber = document.getElementById("percentNumber");
+    const percentText = document.getElementById("percentText");
+    const saveBtn = document.getElementById("saveBtn");
+    const statusEl = document.getElementById("status");
+    const summaryEl = document.getElementById("summary");
+
+    function clampPercent(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return 0;
+      return Math.max(0, Math.min(100, Math.round(n)));
+    }
+
+    function setStatus(message, type = "") {
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`.trim();
+    }
+
+    function syncPercent(value) {
+      const v = clampPercent(value);
+      percentInput.value = String(v);
+      percentNumber.value = String(v);
+      percentText.textContent = String(v);
+      return v;
+    }
+
+    function setSummary(feature, percent) {
+      summaryEl.textContent = `Current setting: ${feature} is enabled for ${percent}% users (deterministic user split).`;
+    }
+
+    percentInput.addEventListener("input", () => {
+      syncPercent(percentInput.value);
+    });
+
+    percentNumber.addEventListener("input", () => {
+      syncPercent(percentNumber.value);
+    });
+
+    saveBtn.addEventListener("click", async () => {
+      if (!api || !api.isConfigured()) {
+        setStatus("Supabase is not configured.", "error");
+        return;
+      }
+
+      const feature = featureSelect.value;
+      const percent = syncPercent(percentNumber.value);
+
+      saveBtn.disabled = true;
+      setStatus("");
+      try {
+        await api.upsertAbTestConfig(feature, percent, true);
+        setStatus("Saved successfully.", "ok");
+        setSummary(feature, percent);
+      } catch (err) {
+        setStatus(err.message || "Save failed.", "error");
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    async function loadCurrent() {
+      if (!api || !api.isConfigured()) {
+        summaryEl.textContent = "Supabase is not configured.";
+        return;
+      }
+
+      const feature = featureSelect.value;
+      try {
+        const cfg = await api.getAbTestConfig(feature);
+        const percent = cfg ? clampPercent(cfg.test_percent) : 100;
+        syncPercent(percent);
+        setSummary(feature, percent);
+      } catch (err) {
+        summaryEl.textContent = err.message || "Could not load existing config.";
+      }
+    }
+
+    featureSelect.addEventListener("change", loadCurrent);
+    loadCurrent();
+  </script>
+</body>
+</html>

@@ -19,6 +19,15 @@
 - Redeploy the same static app.
 - Login with same email on different devices. Data will now sync via Supabase.
 
+## 5) Enable A/B config table
+- Re-run `/Users/farhaaan/Documents/New project/supabase-schema.sql` in Supabase SQL Editor.
+- This adds `ab_test_configs` table and policies.
+
+## 6) Use separate A/B control app
+- Open `/Users/farhaaan/Documents/New project/ab-control.html` (or hosted `.../ab-control.html`).
+- Select feature and set `% of users in test`.
+- Save changes. Teachmint app will pick this config for feature rollout.
+
 ## Notes
 - Auth + file/progress data are now cloud-backed.
 - Local browser storage is no longer used for accounts/files/progress.

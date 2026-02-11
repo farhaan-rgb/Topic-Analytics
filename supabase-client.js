@@ -175,6 +175,63 @@
     return { ...data, ...normalizeProgressRow(data) };
   }
 
+  function normalizePercent(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 0;
+    return Math.max(0, Math.min(100, Math.round(n)));
+  }
+
+  function hashToBucket(input) {
+    const text = String(input || "");
+    let h = 2166136261;
+    for (let i = 0; i < text.length; i += 1) {
+      h ^= text.charCodeAt(i);
+      h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+    }
+    return Math.abs(h >>> 0) % 100;
+  }
+
+  function isUserInRollout(userId, percent) {
+    const p = normalizePercent(percent);
+    if (p <= 0) return false;
+    if (p >= 100) return true;
+    return hashToBucket(userId) < p;
+  }
+
+  async function getAbTestConfig(featureKey) {
+    const supa = getClient();
+    const { data, error } = await supa
+      .from("ab_test_configs")
+      .select("feature_key,test_percent,is_enabled,updated_at")
+      .eq("feature_key", featureKey)
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
+  async function upsertAbTestConfig(featureKey, testPercent, enabled = true) {
+    const supa = getClient();
+    const { data, error } = await supa
+      .from("ab_test_configs")
+      .upsert({
+        feature_key: String(featureKey),
+        test_percent: normalizePercent(testPercent),
+        is_enabled: Boolean(enabled),
+        updated_at: new Date().toISOString()
+      }, { onConflict: "feature_key" })
+      .select("feature_key,test_percent,is_enabled,updated_at")
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function isFeatureEnabledForUser(featureKey, userId, defaultPercent = 100) {
+    const cfg = await getAbTestConfig(featureKey);
+    if (!cfg) return isUserInRollout(userId, defaultPercent);
+    if (!cfg.is_enabled) return false;
+    return isUserInRollout(userId, cfg.test_percent);
+  }
+
   window.teachmintApi = {
     isConfigured,
     getCurrentUser,
@@ -185,6 +242,10 @@
     createFile,
     getProgress,
     listProgressForFiles,
-    upsertProgress
+    upsertProgress,
+    getAbTestConfig,
+    upsertAbTestConfig,
+    isFeatureEnabledForUser,
+    isUserInRollout
   };
 })();

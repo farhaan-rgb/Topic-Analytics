@@ -311,6 +311,15 @@
       }
 
       try {
+        const enabled = await api.isFeatureEnabledForUser("analytics_library", user.id, 100);
+        if (!enabled) {
+          fileTitleEl.textContent = "Analytics unavailable";
+          showEmpty("Analytics is not enabled for your account.");
+          return;
+        }
+      } catch {}
+
+      try {
         const file = await api.getFileById(user.id, id);
         if (!file) {
           fileTitleEl.textContent = "File not found";

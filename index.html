@@ -399,6 +399,7 @@
     let currentUser = null;
     let currentFiles = [];
     let progressByFileId = {};
+    let showAnalyticsForUser = true;
 
     const stopWords = new Set([
       "the", "and", "for", "with", "that", "this", "from", "into", "your", "their", "there", "which", "about", "were", "when", "where",
@@ -557,6 +558,7 @@
       currentUser = null;
       currentFiles = [];
       progressByFileId = {};
+      showAnalyticsForUser = true;
     }
 
     async function loadLibraryData() {
@@ -581,6 +583,11 @@
       authRoot.classList.add("hidden");
       appRoot.classList.remove("hidden");
       welcomeText.textContent = `Signed in as ${user.email || "user"}`;
+      try {
+        showAnalyticsForUser = await api.isFeatureEnabledForUser("analytics_library", user.id, 100);
+      } catch {
+        showAnalyticsForUser = true;
+      }
       fileSearch.value = "";
       await loadLibraryData();
       renderFiles();
@@ -659,15 +666,17 @@
             });
           }
 
-          const analyticsBtn = document.createElement("button");
-          analyticsBtn.className = "action-btn";
-          analyticsBtn.type = "button";
-          analyticsBtn.innerHTML = '<span class="action-icon-slot"><span class="hex analytics">&#128202;</span></span><span class="action-label">Analytics</span>';
-          analyticsBtn.addEventListener("click", () => {
-            window.location.href = `analytics.html?id=${encodeURIComponent(file.id)}`;
-          });
-
-          actions.append(quickBtn, practiceBtn, analyticsBtn);
+          actions.append(quickBtn, practiceBtn);
+          if (showAnalyticsForUser) {
+            const analyticsBtn = document.createElement("button");
+            analyticsBtn.className = "action-btn";
+            analyticsBtn.type = "button";
+            analyticsBtn.innerHTML = '<span class="action-icon-slot"><span class="hex analytics">&#128202;</span></span><span class="action-label">Analytics</span>';
+            analyticsBtn.addEventListener("click", () => {
+              window.location.href = `analytics.html?id=${encodeURIComponent(file.id)}`;
+            });
+            actions.appendChild(analyticsBtn);
+          }
           card.append(name, actions);
           fileGroupsEl.appendChild(card);
         }

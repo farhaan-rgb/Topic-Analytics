@@ -25,8 +25,16 @@ create table if not exists public.file_progress (
   primary key (user_id, file_id)
 );
 
+create table if not exists public.ab_test_configs (
+  feature_key text primary key,
+  test_percent int not null check (test_percent >= 0 and test_percent <= 100),
+  is_enabled boolean not null default true,
+  updated_at timestamptz not null default now()
+);
+
 alter table public.files enable row level security;
 alter table public.file_progress enable row level security;
+alter table public.ab_test_configs enable row level security;
 
 drop policy if exists "users_manage_own_files" on public.files;
 create policy "users_manage_own_files"
@@ -41,3 +49,20 @@ on public.file_progress
 for all
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
+
+drop policy if exists "read_ab_test_configs_authenticated" on public.ab_test_configs;
+create policy "read_ab_test_configs_authenticated"
+on public.ab_test_configs
+for select
+using (auth.role() = 'authenticated');
+
+drop policy if exists "write_ab_test_configs_authenticated" on public.ab_test_configs;
+create policy "write_ab_test_configs_authenticated"
+on public.ab_test_configs
+for all
+using (auth.role() = 'authenticated')
+with check (auth.role() = 'authenticated');
+
+insert into public.ab_test_configs (feature_key, test_percent, is_enabled)
+values ('analytics_library', 100, true)
+on conflict (feature_key) do nothing;
