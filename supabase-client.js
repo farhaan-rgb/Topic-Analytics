@@ -175,6 +175,80 @@
     return { ...data, ...normalizeProgressRow(data) };
   }
 
+  function toHexDigit(value) {
+    if (value == null) return null;
+    const s = String(value).trim().toLowerCase();
+    if (!s) return null;
+    const last = s[s.length - 1];
+    const n = parseInt(last, 16);
+    return Number.isInteger(n) && n >= 0 && n <= 15 ? n : null;
+  }
+
+  function normalizeRange(start, end) {
+    const a = toHexDigit(start);
+    const b = toHexDigit(end);
+    if (a == null || b == null) return null;
+    return a <= b ? { start: a, end: b } : { start: b, end: a };
+  }
+
+  function isUidInRange(uid, start, end) {
+    const tail = toHexDigit(uid);
+    const range = normalizeRange(start, end);
+    if (tail == null || !range) return false;
+    return tail >= range.start && tail <= range.end;
+  }
+
+  async function isCurrentUserAdmin(userId) {
+    const supa = getClient();
+    const { data, error } = await supa
+      .from("app_admins")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw error;
+    return Boolean(data && data.user_id);
+  }
+
+  async function getFeatureRule(featureKey) {
+    const supa = getClient();
+    const { data, error } = await supa
+      .from("feature_rules")
+      .select("feature_key,suffix_start,suffix_end,is_enabled,updated_at")
+      .eq("feature_key", featureKey)
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
+  async function upsertFeatureRule(featureKey, suffixStart, suffixEnd, enabled, updatedBy) {
+    const range = normalizeRange(suffixStart, suffixEnd);
+    if (!range) {
+      throw new Error("Invalid suffix range. Use 0-9 or a-f.");
+    }
+    const supa = getClient();
+    const payload = {
+      feature_key: featureKey,
+      suffix_start: range.start,
+      suffix_end: range.end,
+      is_enabled: Boolean(enabled),
+      updated_at: new Date().toISOString()
+    };
+    if (updatedBy) payload.updated_by = updatedBy;
+    const { data, error } = await supa
+      .from("feature_rules")
+      .upsert(payload, { onConflict: "feature_key" })
+      .select("feature_key,suffix_start,suffix_end,is_enabled,updated_at")
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  function isFeatureEnabledForUser(uid, rule) {
+    if (!rule) return true;
+    if (!rule.is_enabled) return false;
+    return isUidInRange(uid, rule.suffix_start, rule.suffix_end);
+  }
+
   window.teachmintApi = {
     isConfigured,
     getCurrentUser,
@@ -185,6 +259,11 @@
     createFile,
     getProgress,
     listProgressForFiles,
-    upsertProgress
+    upsertProgress,
+    isCurrentUserAdmin,
+    getFeatureRule,
+    upsertFeatureRule,
+    isFeatureEnabledForUser,
+    isUidInRange
   };
 })();

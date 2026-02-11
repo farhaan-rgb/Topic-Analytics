@@ -318,6 +318,19 @@
           return;
         }
 
+        let canViewAnalytics = true;
+        try {
+          const rule = await api.getFeatureRule("analytics_library");
+          canViewAnalytics = api.isFeatureEnabledForUser(user.id, rule);
+        } catch {
+          canViewAnalytics = true;
+        }
+        if (!canViewAnalytics) {
+          fileTitleEl.textContent = "Analytics unavailable";
+          showEmpty("Analytics is not enabled for your account.");
+          return;
+        }
+
         fileTitleEl.textContent = String(file.name || "").replace(/\.[^./\\]+$/, "");
         fileMetaEl.textContent = "";
 

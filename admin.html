@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Teachmint</title>
+  <style>
+    :root {
+      --bg: #080b14;
+      --panel: #161c2f;
+      --line: #323d62;
+      --text: #f0f4ff;
+      --muted: #aab5d5;
+      --ok: #4ad69f;
+      --danger: #ff7ea5;
+      --brand: #2f9bf0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Poppins", "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(165deg, #0a0f1e 0%, #121a30 100%);
+      padding: 1rem;
+    }
+    .container { width: min(740px, 96vw); margin: 0 auto; }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 0.9rem;
+    }
+    .back {
+      border: 1px solid #45507b;
+      background: #1b2238;
+      color: #f1f4ff;
+      border-radius: 11px;
+      padding: 0.48rem 0.72rem;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      padding: 1rem;
+    }
+    h1 { margin: 0; font-size: clamp(1.2rem, 4vw, 1.7rem); }
+    h2 { margin: 0; font-size: 1.2rem; }
+    .muted { color: var(--muted); margin-top: 0.35rem; }
+    .grid {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+    label {
+      display: block;
+      color: #dce4ff;
+      font-size: 0.9rem;
+      margin-bottom: 0.35rem;
+    }
+    select {
+      width: 100%;
+      border: 1px solid #4a5d93;
+      border-radius: 10px;
+      background: #1f2847;
+      color: #f2f6ff;
+      padding: 0.6rem 0.65rem;
+      font: inherit;
+    }
+    .status { min-height: 1.1rem; margin-top: 0.9rem; font-size: 0.92rem; }
+    .status.error { color: var(--danger); }
+    .status.ok { color: var(--ok); }
+    .save {
+      margin-top: 0.9rem;
+      border: 0;
+      border-radius: 11px;
+      padding: 0.62rem 0.88rem;
+      background: linear-gradient(135deg, #2f9bf0, #2377bc);
+      color: white;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+    }
+    .summary {
+      margin-top: 0.9rem;
+      border: 1px solid rgba(115, 132, 186, 0.35);
+      border-radius: 12px;
+      padding: 0.75rem;
+      background: rgba(24, 34, 61, 0.6);
+      color: #dbe4ff;
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="top">
+      <h1>Admin</h1>
+      <a class="back" href="index.html">Back</a>
+    </div>
+
+    <section class="panel">
+      <h2>Analytics Feature Targeting</h2>
+      <div class="muted">Control who sees Analytics in Library using the last hexadecimal character of Supabase UID.</div>
+
+      <div id="formWrap" class="hidden">
+        <div class="grid">
+          <div>
+            <label for="suffixStart">Show feature from UID suffix</label>
+            <select id="suffixStart"></select>
+          </div>
+          <div>
+            <label for="suffixEnd">to suffix</label>
+            <select id="suffixEnd"></select>
+          </div>
+        </div>
+
+        <button id="saveBtn" class="save" type="button">Save</button>
+        <div id="status" class="status"></div>
+        <div id="summary" class="summary"></div>
+      </div>
+
+      <div id="blocked" class="summary hidden">You are not authorized to edit feature targeting.</div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    const api = window.teachmintApi;
+    const FEATURE_KEY = "analytics_library";
+
+    const formWrap = document.getElementById("formWrap");
+    const blockedEl = document.getElementById("blocked");
+    const suffixStartEl = document.getElementById("suffixStart");
+    const suffixEndEl = document.getElementById("suffixEnd");
+    const saveBtn = document.getElementById("saveBtn");
+    const statusEl = document.getElementById("status");
+    const summaryEl = document.getElementById("summary");
+
+    function setStatus(message, type = "") {
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`.trim();
+    }
+
+    function hexLabel(n) {
+      return n.toString(16);
+    }
+
+    function populateSelects() {
+      suffixStartEl.innerHTML = "";
+      suffixEndEl.innerHTML = "";
+      for (let i = 0; i <= 15; i += 1) {
+        const label = `${hexLabel(i)} (${i})`;
+        const a = document.createElement("option");
+        a.value = String(i);
+        a.textContent = label;
+        suffixStartEl.appendChild(a);
+
+        const b = document.createElement("option");
+        b.value = String(i);
+        b.textContent = label;
+        suffixEndEl.appendChild(b);
+      }
+    }
+
+    function setSummary(start, end) {
+      summaryEl.textContent = `Users with UID ending hex digit between ${hexLabel(start)} and ${hexLabel(end)} (inclusive) will see Analytics.`;
+    }
+
+    async function loadRule() {
+      const rule = await api.getFeatureRule(FEATURE_KEY);
+      const start = rule ? Number(rule.suffix_start) : 0;
+      const end = rule ? Number(rule.suffix_end) : 4;
+      suffixStartEl.value = String(Number.isInteger(start) ? start : 0);
+      suffixEndEl.value = String(Number.isInteger(end) ? end : 4);
+      setSummary(Number(suffixStartEl.value), Number(suffixEndEl.value));
+    }
+
+    saveBtn.addEventListener("click", async () => {
+      const start = Number(suffixStartEl.value);
+      const end = Number(suffixEndEl.value);
+      setStatus("");
+      saveBtn.disabled = true;
+      try {
+        await api.upsertFeatureRule(FEATURE_KEY, start, end, true);
+        setStatus("Saved successfully.", "ok");
+        setSummary(Math.min(start, end), Math.max(start, end));
+      } catch (err) {
+        setStatus(err.message || "Save failed.", "error");
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    async function init() {
+      populateSelects();
+      if (!api || !api.isConfigured()) {
+        blockedEl.classList.remove("hidden");
+        blockedEl.textContent = "Supabase is not configured.";
+        return;
+      }
+
+      let user = null;
+      try {
+        user = await api.getCurrentUser();
+      } catch (err) {
+        blockedEl.classList.remove("hidden");
+        blockedEl.textContent = err.message || "Could not validate session.";
+        return;
+      }
+
+      if (!user) {
+        blockedEl.classList.remove("hidden");
+        blockedEl.textContent = "Please login first.";
+        return;
+      }
+
+      let isAdmin = false;
+      try {
+        isAdmin = await api.isCurrentUserAdmin(user.id);
+      } catch (err) {
+        blockedEl.classList.remove("hidden");
+        blockedEl.textContent = err.message || "Could not verify admin access.";
+        return;
+      }
+
+      if (!isAdmin) {
+        blockedEl.classList.remove("hidden");
+        return;
+      }
+
+      blockedEl.classList.add("hidden");
+      formWrap.classList.remove("hidden");
+
+      try {
+        await loadRule();
+      } catch (err) {
+        setStatus(err.message || "Could not load existing rule.", "error");
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
