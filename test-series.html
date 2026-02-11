@@ -64,7 +64,7 @@
       border-radius: 12px;
       background: linear-gradient(155deg, #171f34, #13192a);
       padding: 0.58rem 0.65rem;
-      margin-bottom: 0.9rem;
+      margin-bottom: 0.7rem;
     }
     .exam-label {
       font-size: 0.77rem;
@@ -127,6 +127,20 @@
       background: #243458;
       color: #fff;
     }
+    .custom-bar {
+      margin-bottom: 0.85rem;
+    }
+    .custom-btn {
+      width: 100%;
+      border: 1px solid #2f9bf0;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #2f9bf0, #2377bc);
+      color: #fff;
+      padding: 0.58rem 0.72rem;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
     .tests-list {
       display: grid;
       gap: 0.75rem;
@@ -153,6 +167,12 @@
       color: #a9b5d7;
       font-size: 0.84rem;
       line-height: 1.3;
+    }
+    .test-stats {
+      margin-top: 0.38rem;
+      color: #d1dcff;
+      font-size: 0.82rem;
+      line-height: 1.2;
     }
     .timer-pill {
       border: 1px solid #3f5e8e;
@@ -182,10 +202,113 @@
       font-weight: 600;
       cursor: pointer;
     }
-    .status-note {
-      color: #9eb0d8;
-      font-size: 0.82rem;
+    .custom-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(5, 7, 12, 0.74);
+      display: grid;
+      place-items: center;
+      padding: 0.9rem;
+    }
+    .custom-modal {
+      width: min(620px, 96vw);
+      max-height: min(92vh, 760px);
+      overflow: auto;
+      border: 1px solid #304a7a;
+      border-radius: 14px;
+      background: linear-gradient(160deg, #141d33, #0f1628);
+      padding: 0.9rem;
+    }
+    .custom-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 0.7rem;
+    }
+    .custom-title { margin: 0; font-size: 1.08rem; }
+    .close-custom {
+      border: 1px solid #445682;
+      background: #1f2a45;
+      color: #eff4ff;
+      border-radius: 10px;
+      padding: 0.32rem 0.54rem;
+      font: inherit;
+      cursor: pointer;
+      font-size: 0.86rem;
+    }
+    .grid {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .full { grid-column: 1 / -1; }
+    label {
+      display: block;
+      color: #dce4ff;
+      font-size: 0.9rem;
+      margin-bottom: 0.35rem;
+    }
+    .field, .field-select {
+      width: 100%;
+      border: 1px solid #4a5d93;
+      border-radius: 10px;
+      background: #1f2847;
+      color: #f2f6ff;
+      padding: 0.62rem 0.68rem;
+      font: inherit;
+    }
+    .picker-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0.4rem;
+      max-height: 180px;
+      overflow: auto;
+      border: 1px solid #2f3f66;
+      border-radius: 10px;
+      padding: 0.45rem;
+      background: #18233f;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: #e8eeff;
+    }
+    .custom-actions {
+      margin-top: 0.9rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+    .btn-ghost {
+      border: 1px solid #485d8f;
+      border-radius: 10px;
+      background: #1c2742;
+      color: #eef4ff;
+      padding: 0.5rem 0.72rem;
+      font: inherit;
+      cursor: pointer;
+    }
+    .btn-primary {
+      border: 1px solid #2f9bf0;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2f9bf0, #2377bc);
+      color: #fff;
+      padding: 0.5rem 0.72rem;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .custom-status {
+      margin-top: 0.62rem;
       min-height: 1rem;
+      font-size: 0.84rem;
+      color: #ff9cbb;
     }
     .bottom-nav {
       position: fixed;
@@ -251,9 +374,49 @@
         </div>
       </div>
 
+      <div class="custom-bar">
+        <button id="openCustomBtn" class="custom-btn" type="button">Create Custom Mock Test</button>
+      </div>
+
       <div id="testsList" class="tests-list"></div>
     </section>
   </main>
+
+  <div id="customOverlay" class="custom-overlay hidden">
+    <div class="custom-modal">
+      <div class="custom-head">
+        <h3 class="custom-title">Create Custom Mock Test</h3>
+        <button id="closeCustomBtn" class="close-custom" type="button">Close</button>
+      </div>
+      <div class="grid">
+        <div>
+          <label for="customDuration">Duration (minutes)</label>
+          <input id="customDuration" class="field" type="number" min="10" max="300" step="5" value="60" />
+        </div>
+        <div>
+          <label for="customLevel">Level</label>
+          <select id="customLevel" class="field-select">
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+          </select>
+        </div>
+        <div class="full">
+          <label>Subjects</label>
+          <ul id="subjectsList" class="picker-list"></ul>
+        </div>
+        <div class="full">
+          <label>Chapters</label>
+          <ul id="chaptersList" class="picker-list"></ul>
+        </div>
+      </div>
+      <div id="customStatus" class="custom-status"></div>
+      <div class="custom-actions">
+        <button id="cancelCustomBtn" class="btn-ghost" type="button">Cancel</button>
+        <button id="createCustomBtn" class="btn-primary" type="button">Create</button>
+      </div>
+    </div>
+  </div>
 
   <nav class="bottom-nav" aria-label="Bottom navigation">
     <button id="goStudyBtn" class="bottom-btn" type="button">Study Materials</button>
@@ -264,6 +427,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="supabase-client.js"></script>
+  <script src="curriculum-data.js"></script>
   <script>
     const api = window.teachmintApi;
 
@@ -275,6 +439,32 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const goStudyBtn = document.getElementById("goStudyBtn");
     const goPracticeBtn = document.getElementById("goPracticeBtn");
+
+    const openCustomBtn = document.getElementById("openCustomBtn");
+    const customOverlay = document.getElementById("customOverlay");
+    const closeCustomBtn = document.getElementById("closeCustomBtn");
+    const cancelCustomBtn = document.getElementById("cancelCustomBtn");
+    const createCustomBtn = document.getElementById("createCustomBtn");
+    const customDuration = document.getElementById("customDuration");
+    const customLevel = document.getElementById("customLevel");
+    const subjectsList = document.getElementById("subjectsList");
+    const chaptersList = document.getElementById("chaptersList");
+    const customStatus = document.getElementById("customStatus");
+
+    const STATS_STORAGE_KEY = "teachmint_test_stats_v2";
+    const CUSTOM_TESTS_STORAGE_KEY = "teachmint_custom_tests_v1";
+
+    const defaultStats = {
+      "JEE:jee-1": { completed: 1240, rating_sum: 5230, rating_count: 1320 },
+      "JEE:jee-2": { completed: 890, rating_sum: 3660, rating_count: 940 },
+      "JEE:jee-3": { completed: 640, rating_sum: 2590, rating_count: 700 },
+      "NEET:neet-1": { completed: 1530, rating_sum: 6550, rating_count: 1620 },
+      "NEET:neet-2": { completed: 1010, rating_sum: 4200, rating_count: 1090 },
+      "NEET:neet-3": { completed: 730, rating_sum: 2990, rating_count: 790 },
+      "UPSC:upsc-1": { completed: 950, rating_sum: 3870, rating_count: 1020 },
+      "UPSC:upsc-2": { completed: 580, rating_sum: 2280, rating_count: 620 },
+      "UPSC:upsc-3": { completed: 420, rating_sum: 1680, rating_count: 470 }
+    };
 
     const testTemplates = {
       JEE: [
@@ -296,6 +486,55 @@
 
     let currentUser = null;
     let selectedExam = "JEE";
+    let statsByKey = loadStats();
+    let customTestsByExam = loadCustomTests();
+    let selectedSubjects = new Set();
+    let selectedChapters = new Set();
+
+    function loadStats() {
+      let parsed = null;
+      try {
+        parsed = JSON.parse(localStorage.getItem(STATS_STORAGE_KEY) || "null");
+      } catch {}
+      const out = Object.assign({}, defaultStats, parsed && typeof parsed === "object" ? parsed : {});
+      localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(out));
+      return out;
+    }
+
+    function loadCustomTests() {
+      let parsed = null;
+      try {
+        parsed = JSON.parse(localStorage.getItem(CUSTOM_TESTS_STORAGE_KEY) || "null");
+      } catch {}
+      const base = { JEE: [], NEET: [], UPSC: [] };
+      if (parsed && typeof parsed === "object") {
+        for (const exam of ["JEE", "NEET", "UPSC"]) {
+          base[exam] = Array.isArray(parsed[exam]) ? parsed[exam] : [];
+        }
+      }
+      return base;
+    }
+
+    function persistCustomTests() {
+      localStorage.setItem(CUSTOM_TESTS_STORAGE_KEY, JSON.stringify(customTestsByExam));
+    }
+
+    function statsFor(key) {
+      const row = statsByKey[key] || { completed: 0, rating_sum: 0, rating_count: 0 };
+      return {
+        completed: Number(row.completed) || 0,
+        ratingSum: Number(row.rating_sum) || 0,
+        ratingCount: Number(row.rating_count) || 0
+      };
+    }
+
+    function formatStars(avg) {
+      const safe = Number.isFinite(avg) ? avg : 0;
+      const rounded = Math.round(safe);
+      const full = "★".repeat(Math.max(0, Math.min(5, rounded)));
+      const empty = "☆".repeat(5 - Math.max(0, Math.min(5, rounded)));
+      return `${full}${empty} ${safe.toFixed(1)}`;
+    }
 
     function syncExamDropdown() {
       examTrigger.textContent = selectedExam;
@@ -310,10 +549,104 @@
       syncExamDropdown();
     }
 
+    function openCustomModal() {
+      selectedSubjects = new Set();
+      selectedChapters = new Set();
+      customDuration.value = "60";
+      customLevel.value = "Easy";
+      customStatus.textContent = "";
+      renderSubjects();
+      renderChapters();
+      customOverlay.classList.remove("hidden");
+    }
+
+    function closeCustomModal() {
+      customOverlay.classList.add("hidden");
+    }
+
+    function curriculumMap() {
+      const source = window.curriculumData && window.curriculumData.catalog ? window.curriculumData.catalog : {};
+      return source && typeof source[selectedExam] === "object" ? source[selectedExam] : {};
+    }
+
+    function renderSubjects() {
+      const map = curriculumMap();
+      subjectsList.innerHTML = "";
+      const subjects = Object.keys(map);
+      if (!subjects.length) {
+        const li = document.createElement("li");
+        li.className = "check-item";
+        li.textContent = "No subjects available.";
+        subjectsList.appendChild(li);
+        return;
+      }
+      for (const subject of subjects) {
+        const li = document.createElement("li");
+        const id = `sub-${subject.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`;
+        li.className = "check-item";
+        li.innerHTML = `<input id="${id}" type="checkbox" ${selectedSubjects.has(subject) ? "checked" : ""} /><label for="${id}" style="margin:0;cursor:pointer;">${subject}</label>`;
+        const checkbox = li.querySelector("input");
+        checkbox.addEventListener("change", () => {
+          if (checkbox.checked) selectedSubjects.add(subject);
+          else selectedSubjects.delete(subject);
+          renderChapters();
+        });
+        subjectsList.appendChild(li);
+      }
+    }
+
+    function chapterPool() {
+      const map = curriculumMap();
+      const out = [];
+      for (const subject of selectedSubjects) {
+        const chapters = Array.isArray(map[subject]) ? map[subject] : [];
+        for (const chapter of chapters) {
+          out.push({ subject, chapter });
+        }
+      }
+      return out;
+    }
+
+    function renderChapters() {
+      const pool = chapterPool();
+      const keysAllowed = new Set(pool.map((p) => `${p.subject}::${p.chapter}`));
+      for (const key of [...selectedChapters]) {
+        if (!keysAllowed.has(key)) selectedChapters.delete(key);
+      }
+      chaptersList.innerHTML = "";
+      if (!pool.length) {
+        const li = document.createElement("li");
+        li.className = "check-item";
+        li.textContent = "Select subject(s) first.";
+        chaptersList.appendChild(li);
+        return;
+      }
+      for (const entry of pool) {
+        const key = `${entry.subject}::${entry.chapter}`;
+        const id = `ch-${Math.random().toString(36).slice(2, 8)}`;
+        const li = document.createElement("li");
+        li.className = "check-item";
+        li.innerHTML = `<input id="${id}" type="checkbox" ${selectedChapters.has(key) ? "checked" : ""} /><label for="${id}" style="margin:0;cursor:pointer;">${entry.subject} - ${entry.chapter}</label>`;
+        const checkbox = li.querySelector("input");
+        checkbox.addEventListener("change", () => {
+          if (checkbox.checked) selectedChapters.add(key);
+          else selectedChapters.delete(key);
+        });
+        chaptersList.appendChild(li);
+      }
+    }
+
     function renderTests() {
-      const tests = Array.isArray(testTemplates[selectedExam]) ? testTemplates[selectedExam] : [];
+      const fixed = Array.isArray(testTemplates[selectedExam]) ? testTemplates[selectedExam] : [];
+      const custom = Array.isArray(customTestsByExam[selectedExam]) ? customTestsByExam[selectedExam] : [];
+      const tests = [...fixed, ...custom];
       testsList.innerHTML = "";
+
       for (const t of tests) {
+        const statsKey = t.statsKey || `${selectedExam}:${t.id}`;
+        const s = statsFor(statsKey);
+        const avg = s.ratingCount ? s.ratingSum / s.ratingCount : 0;
+
         const card = document.createElement("article");
         card.className = "test-card";
         card.innerHTML = `
@@ -322,18 +655,21 @@
               <h3 class="test-title">${t.title}</h3>
               <div class="test-meta">${t.syllabus}</div>
               <div class="test-meta">${t.questions} questions • ${t.minutes} mins</div>
+              <div class="test-stats">Completed by ${s.completed} learners • ${formatStars(avg)} (${s.ratingCount})</div>
             </div>
             <div class="timer-pill">${String(t.minutes).padStart(2, "0")}:00</div>
           </div>
           <div class="test-actions">
             <button class="test-btn" type="button" id="create-${t.id}">Create Questions</button>
-            <span class="status-note">Opens full test page in the same tab.</span>
           </div>
         `;
         testsList.appendChild(card);
-        const createBtn = card.querySelector(`#create-${t.id}`);
-        createBtn.addEventListener("click", () => {
-          const url = `test-attempt.html?exam=${encodeURIComponent(selectedExam)}&test_id=${encodeURIComponent(t.id)}&title=${encodeURIComponent(t.title)}&syllabus=${encodeURIComponent(t.syllabus)}&count=${encodeURIComponent(String(t.questions))}&minutes=${encodeURIComponent(String(t.minutes))}`;
+
+        card.querySelector(`#create-${t.id}`).addEventListener("click", () => {
+          const subjectsText = Array.isArray(t.subjects) ? t.subjects.join("|") : "";
+          const chaptersText = Array.isArray(t.chapters) ? t.chapters.join("|") : "";
+          const levelText = t.level ? String(t.level) : "";
+          const url = `test-attempt.html?exam=${encodeURIComponent(selectedExam)}&test_id=${encodeURIComponent(t.id)}&title=${encodeURIComponent(t.title)}&syllabus=${encodeURIComponent(t.syllabus)}&count=${encodeURIComponent(String(t.questions))}&minutes=${encodeURIComponent(String(t.minutes))}&stats_key=${encodeURIComponent(statsKey)}&level=${encodeURIComponent(levelText)}&subjects=${encodeURIComponent(subjectsText)}&chapters=${encodeURIComponent(chaptersText)}`;
           window.location.href = url;
         });
       }
@@ -344,7 +680,6 @@
         window.location.href = "index.html";
         return;
       }
-
       try {
         currentUser = await api.getCurrentUser();
       } catch {
@@ -373,6 +708,7 @@
       examMenu.classList.toggle("hidden");
       syncExamDropdown();
     });
+
     for (const option of examOptions) {
       option.addEventListener("click", () => {
         selectedExam = option.dataset.exam;
@@ -380,16 +716,77 @@
         renderTests();
       });
     }
+
     document.addEventListener("click", (event) => {
       if (!event.target.closest(".exam-select-wrap")) closeExamMenu();
+    });
+
+    openCustomBtn.addEventListener("click", openCustomModal);
+    closeCustomBtn.addEventListener("click", closeCustomModal);
+    cancelCustomBtn.addEventListener("click", closeCustomModal);
+    customOverlay.addEventListener("click", (event) => {
+      if (event.target === customOverlay) closeCustomModal();
+    });
+
+    createCustomBtn.addEventListener("click", () => {
+      customStatus.textContent = "";
+      const duration = Math.max(10, Math.min(300, Number(customDuration.value) || 0));
+      if (!selectedSubjects.size) {
+        customStatus.textContent = "Select at least one subject.";
+        return;
+      }
+      if (!selectedChapters.size) {
+        customStatus.textContent = "Select at least one chapter.";
+        return;
+      }
+
+      const subjects = [...selectedSubjects];
+      const chapterPairs = [...selectedChapters].map((key) => {
+        const idx = key.indexOf("::");
+        return idx >= 0 ? key.slice(idx + 2) : key;
+      });
+      const level = customLevel.value;
+
+      const customId = `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+      const existing = Array.isArray(customTestsByExam[selectedExam]) ? customTestsByExam[selectedExam] : [];
+      const title = `Custom Mock ${existing.length + 1}`;
+      const qCount = Math.max(10, Math.min(200, Math.round(duration * 0.8)));
+      const syllabus = `${level} • ${subjects.join(", ")} • ${chapterPairs.slice(0, 3).join(", ")}${chapterPairs.length > 3 ? "..." : ""}`;
+      const statsKey = `${selectedExam}:${customId}`;
+
+      customTestsByExam[selectedExam] = [
+        {
+          id: customId,
+          title,
+          syllabus,
+          questions: qCount,
+          minutes: duration,
+          level,
+          subjects,
+          chapters: chapterPairs,
+          statsKey
+        },
+        ...existing
+      ];
+
+      if (!statsByKey[statsKey]) {
+        statsByKey[statsKey] = { completed: 0, rating_sum: 0, rating_count: 0 };
+      }
+
+      localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(statsByKey));
+      persistCustomTests();
+      closeCustomModal();
+      renderTests();
     });
 
     goStudyBtn.addEventListener("click", () => {
       window.location.href = "index.html";
     });
+
     goPracticeBtn.addEventListener("click", () => {
       window.location.href = "practice-hub.html";
     });
+
     logoutBtn.addEventListener("click", async () => {
       try {
         await api.signOut();

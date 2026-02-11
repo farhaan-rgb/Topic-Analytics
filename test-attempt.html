@@ -157,6 +157,7 @@
     const syllabus = (params.get("syllabus") || "").trim();
     const count = Math.max(1, Number(params.get("count")) || 10);
     const minutes = Math.max(1, Number(params.get("minutes")) || 60);
+    const statsKey = (params.get("stats_key") || "").trim();
 
     const titleEl = document.getElementById("title");
     const metaEl = document.getElementById("meta");
@@ -183,6 +184,7 @@
     let evaluated = false;
     let remainingSeconds = minutes * 60;
     let timerHandle = null;
+    let completionSaved = false;
 
     function showEmpty(msg) {
       quizEl.style.display = "none";
@@ -271,6 +273,20 @@
       if (timerHandle) {
         clearInterval(timerHandle);
         timerHandle = null;
+      }
+      if (!completionSaved && statsKey) {
+        completionSaved = true;
+        try {
+          const storeKey = "teachmint_test_stats_v2";
+          const raw = JSON.parse(localStorage.getItem(storeKey) || "{}");
+          const row = raw && typeof raw[statsKey] === "object" ? raw[statsKey] : {};
+          raw[statsKey] = {
+            completed: (Number(row.completed) || 0) + 1,
+            rating_sum: Number(row.rating_sum) || 0,
+            rating_count: Number(row.rating_count) || 0
+          };
+          localStorage.setItem(storeKey, JSON.stringify(raw));
+        } catch {}
       }
       showEmpty(message);
     }
