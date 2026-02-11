@@ -121,24 +121,6 @@
       white-space: nowrap;
     }
 
-    .top-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .admin-btn {
-      border: 1px solid #445089;
-      background: #222a49;
-      color: #dfe7ff;
-      border-radius: 12px;
-      padding: 0.55rem 0.75rem;
-      cursor: pointer;
-      white-space: nowrap;
-      text-decoration: none;
-      font-size: 0.92rem;
-    }
-
     .search-wrap {
       display: flex;
       align-items: center;
@@ -370,10 +352,7 @@
           </div>
           <div class="welcome" id="welcomeText">Signed in</div>
         </div>
-        <div class="top-actions">
-          <a id="adminBtn" class="admin-btn hidden" href="admin.html">Admin</a>
-          <button id="logoutBtn" class="logout-btn" type="button">Logout</button>
-        </div>
+        <button id="logoutBtn" class="logout-btn" type="button">Logout</button>
       </div>
 
       <div class="search-wrap">
@@ -409,7 +388,6 @@
     const authStatusEl = document.getElementById("authStatus");
 
     const welcomeText = document.getElementById("welcomeText");
-    const adminBtn = document.getElementById("adminBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const fileSearch = document.getElementById("fileSearch");
     const uploadBtn = document.getElementById("uploadBtn");
@@ -421,7 +399,6 @@
     let currentUser = null;
     let currentFiles = [];
     let progressByFileId = {};
-    let canViewAnalytics = true;
 
     const stopWords = new Set([
       "the", "and", "for", "with", "that", "this", "from", "into", "your", "their", "there", "which", "about", "were", "when", "where",
@@ -580,8 +557,6 @@
       currentUser = null;
       currentFiles = [];
       progressByFileId = {};
-      canViewAnalytics = true;
-      adminBtn.classList.add("hidden");
     }
 
     async function loadLibraryData() {
@@ -606,18 +581,6 @@
       authRoot.classList.add("hidden");
       appRoot.classList.remove("hidden");
       welcomeText.textContent = `Signed in as ${user.email || "user"}`;
-      try {
-        const isAdmin = await api.isCurrentUserAdmin(user.id);
-        adminBtn.classList.toggle("hidden", !isAdmin);
-      } catch {
-        adminBtn.classList.add("hidden");
-      }
-      try {
-        const rule = await api.getFeatureRule("analytics_library");
-        canViewAnalytics = api.isFeatureEnabledForUser(user.id, rule);
-      } catch {
-        canViewAnalytics = true;
-      }
       fileSearch.value = "";
       await loadLibraryData();
       renderFiles();
@@ -696,17 +659,15 @@
             });
           }
 
-          actions.append(quickBtn, practiceBtn);
-          if (canViewAnalytics) {
-            const analyticsBtn = document.createElement("button");
-            analyticsBtn.className = "action-btn";
-            analyticsBtn.type = "button";
-            analyticsBtn.innerHTML = '<span class="action-icon-slot"><span class="hex analytics">&#128202;</span></span><span class="action-label">Analytics</span>';
-            analyticsBtn.addEventListener("click", () => {
-              window.location.href = `analytics.html?id=${encodeURIComponent(file.id)}`;
-            });
-            actions.appendChild(analyticsBtn);
-          }
+          const analyticsBtn = document.createElement("button");
+          analyticsBtn.className = "action-btn";
+          analyticsBtn.type = "button";
+          analyticsBtn.innerHTML = '<span class="action-icon-slot"><span class="hex analytics">&#128202;</span></span><span class="action-label">Analytics</span>';
+          analyticsBtn.addEventListener("click", () => {
+            window.location.href = `analytics.html?id=${encodeURIComponent(file.id)}`;
+          });
+
+          actions.append(quickBtn, practiceBtn, analyticsBtn);
           card.append(name, actions);
           fileGroupsEl.appendChild(card);
         }
