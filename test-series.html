@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Series - Teachmint</title>
+  <style>
+    :root {
+      --text: #f2f4ff;
+      --muted: #99a0bc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% -5%, #203066 0%, transparent 45%),
+        linear-gradient(160deg, #07080f 0%, #0a0d1a 60%, #080a13 100%);
+      min-height: 100vh;
+      padding-bottom: 86px;
+    }
+    .app-wrap {
+      width: min(600px, 94vw);
+      margin: 1.1rem auto;
+    }
+    .panel {
+      background: linear-gradient(150deg, rgba(22, 24, 38, 0.95), rgba(15, 17, 27, 0.95));
+      border: 1px solid #252a3a;
+      border-radius: 16px;
+      padding: 1rem;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 0.75rem;
+    }
+    .brand-row { display: flex; align-items: center; gap: 0.65rem; }
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      background: linear-gradient(160deg, #2cc2ff, #0f8dcc);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 8px 18px rgba(24, 181, 255, 0.35);
+    }
+    .brand-logo svg { width: 25px; height: 25px; }
+    h1 { margin: 0; font-size: clamp(1.45rem, 5vw, 2rem); }
+    .welcome { color: var(--muted); font-size: 0.88rem; margin-top: 0.15rem; }
+    .logout-btn {
+      border: 1px solid #3a405a;
+      background: #21263a;
+      color: #f2f4ff;
+      border-radius: 12px;
+      padding: 0.55rem 0.75rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .exam-shell {
+      border: 1px solid #2f3a56;
+      border-radius: 12px;
+      background: linear-gradient(155deg, #171f34, #13192a);
+      padding: 0.58rem 0.65rem;
+      margin-bottom: 0.9rem;
+    }
+    .exam-label {
+      font-size: 0.77rem;
+      color: #8ea1cb;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 0.34rem;
+      font-weight: 600;
+    }
+    .exam-select-wrap {
+      position: relative;
+    }
+    .exam-select-wrap::after {
+      content: "";
+      position: absolute;
+      right: 0.68rem;
+      top: 50%;
+      width: 0.46rem;
+      height: 0.46rem;
+      border-right: 2px solid #9cb2de;
+      border-bottom: 2px solid #9cb2de;
+      transform: translateY(-65%) rotate(45deg);
+      pointer-events: none;
+      opacity: 0.9;
+    }
+    .exam-select {
+      width: 100%;
+      border: 1px solid #3f4f77;
+      border-radius: 11px;
+      background: #1b2642;
+      color: #eef3ff;
+      padding: 0.66rem 2rem 0.66rem 0.72rem;
+      font: inherit;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+    }
+    .tests-list {
+      display: grid;
+      gap: 0.75rem;
+    }
+    .test-card {
+      border: 1px solid #2d3857;
+      border-radius: 13px;
+      background: linear-gradient(155deg, rgba(31, 42, 67, 0.93), rgba(20, 28, 44, 0.93));
+      padding: 0.75rem;
+    }
+    .test-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.7rem;
+    }
+    .test-title {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.25;
+    }
+    .test-meta {
+      margin-top: 0.28rem;
+      color: #a9b5d7;
+      font-size: 0.84rem;
+      line-height: 1.3;
+    }
+    .timer-pill {
+      border: 1px solid #3f5e8e;
+      border-radius: 999px;
+      padding: 0.25rem 0.56rem;
+      color: #cbe4ff;
+      background: #17335a;
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .timer-pill.live {
+      border-color: #3aca78;
+      background: #1f4f38;
+      color: #d8ffe8;
+    }
+    .test-actions {
+      margin-top: 0.68rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+    }
+    .test-btn {
+      border: 1px solid #48618f;
+      border-radius: 10px;
+      background: #1f3052;
+      color: #eff4ff;
+      padding: 0.44rem 0.72rem;
+      font: inherit;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .test-btn.primary {
+      border-color: #2f9bf0;
+      background: linear-gradient(135deg, #2f9bf0, #2377bc);
+      color: #fff;
+    }
+    .status-note {
+      color: #9eb0d8;
+      font-size: 0.82rem;
+      min-height: 1rem;
+    }
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      border-top: 1px solid #2d3551;
+      background: rgba(10, 14, 24, 0.97);
+      backdrop-filter: blur(6px);
+      padding: 0.55rem 0.8rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.6rem;
+    }
+    .bottom-btn {
+      border: 1px solid #3a4260;
+      border-radius: 12px;
+      background: #1a2237;
+      color: #dbe4ff;
+      padding: 0.62rem 0.5rem;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .bottom-btn.active {
+      border-color: #2aa8f4;
+      background: #223d63;
+      color: #eff6ff;
+      box-shadow: inset 0 0 0 1px rgba(47, 155, 240, 0.35);
+    }
+  </style>
+</head>
+<body>
+  <main class="app-wrap">
+    <section class="panel">
+      <div class="topbar">
+        <div>
+          <div class="brand-row">
+            <div class="brand-logo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M3 7.5L12 3l9 4.5-9 4.5L3 7.5Z" fill="#E7F8FF" opacity=".95"/>
+                <path d="M3 11.6 12 16l9-4.4" stroke="#D6F2FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 7.2v11.2" stroke="#0C5E8D" stroke-width="1.7" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h1>Teachmint</h1>
+          </div>
+          <div id="welcomeText" class="welcome">Test Series</div>
+        </div>
+        <button id="logoutBtn" class="logout-btn" type="button">Logout</button>
+      </div>
+
+      <div class="exam-shell">
+        <div class="exam-label">Exam</div>
+        <div class="exam-select-wrap">
+          <select id="examSelect" class="exam-select" aria-label="Select exam">
+            <option value="JEE">JEE</option>
+            <option value="NEET">NEET</option>
+            <option value="UPSC">UPSC</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="testsList" class="tests-list"></div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Bottom navigation">
+    <button id="goStudyBtn" class="bottom-btn" type="button">Study Materials</button>
+    <button id="goPracticeBtn" class="bottom-btn" type="button">Practice</button>
+    <button class="bottom-btn active" type="button">Test Series</button>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    const api = window.teachmintApi;
+
+    const examSelect = document.getElementById("examSelect");
+    const testsList = document.getElementById("testsList");
+    const welcomeText = document.getElementById("welcomeText");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const goStudyBtn = document.getElementById("goStudyBtn");
+    const goPracticeBtn = document.getElementById("goPracticeBtn");
+
+    const testTemplates = {
+      JEE: [
+        { id: "jee-1", title: "JEE Mock Test 1", syllabus: "Maths + Physics + Chemistry", questions: 90, minutes: 180 },
+        { id: "jee-2", title: "JEE Mock Test 2", syllabus: "Core Concepts Revision", questions: 75, minutes: 150 },
+        { id: "jee-3", title: "JEE Speed Test", syllabus: "Mixed High-Weightage Topics", questions: 45, minutes: 60 }
+      ],
+      NEET: [
+        { id: "neet-1", title: "NEET Mock Test 1", syllabus: "Biology + Physics + Chemistry", questions: 180, minutes: 180 },
+        { id: "neet-2", title: "NEET Mock Test 2", syllabus: "NCERT Based Mix", questions: 120, minutes: 120 },
+        { id: "neet-3", title: "NEET Time Trial", syllabus: "High-Frequency NEET Topics", questions: 60, minutes: 60 }
+      ],
+      UPSC: [
+        { id: "upsc-1", title: "UPSC Prelims Mock 1", syllabus: "Polity + History + Geography", questions: 100, minutes: 120 },
+        { id: "upsc-2", title: "UPSC CSAT Drill", syllabus: "Aptitude + Reasoning + Comprehension", questions: 80, minutes: 120 },
+        { id: "upsc-3", title: "UPSC Rapid Revision Test", syllabus: "Static + Current Affairs Blend", questions: 50, minutes: 60 }
+      ]
+    };
+
+    const runningTimers = {};
+    const remainingSeconds = {};
+    let currentUser = null;
+
+    function formatTime(totalSec) {
+      const sec = Math.max(0, Number(totalSec) || 0);
+      const mm = String(Math.floor(sec / 60)).padStart(2, "0");
+      const ss = String(sec % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
+    }
+
+    function stopTimer(testId) {
+      if (runningTimers[testId]) {
+        clearInterval(runningTimers[testId]);
+        delete runningTimers[testId];
+      }
+    }
+
+    function renderTests() {
+      const exam = examSelect.value;
+      const tests = Array.isArray(testTemplates[exam]) ? testTemplates[exam] : [];
+      testsList.innerHTML = "";
+      for (const t of tests) {
+        if (!Number.isFinite(remainingSeconds[t.id])) {
+          remainingSeconds[t.id] = t.minutes * 60;
+        }
+        const card = document.createElement("article");
+        card.className = "test-card";
+
+        const live = Boolean(runningTimers[t.id]);
+        const timerClass = live ? "timer-pill live" : "timer-pill";
+        const timerText = formatTime(remainingSeconds[t.id]);
+
+        card.innerHTML = `
+          <div class="test-head">
+            <div>
+              <h3 class="test-title">${t.title}</h3>
+              <div class="test-meta">${t.syllabus}</div>
+              <div class="test-meta">${t.questions} questions • ${t.minutes} mins</div>
+            </div>
+            <div class="${timerClass}" id="timer-${t.id}">${timerText}</div>
+          </div>
+          <div class="test-actions">
+            <button class="test-btn primary" type="button" id="start-${t.id}">${live ? "Running" : "Start Test"}</button>
+            <button class="test-btn" type="button" id="reset-${t.id}">Reset</button>
+            <span class="status-note" id="note-${t.id}">${live ? "Timer is running..." : "Ready to start."}</span>
+          </div>
+        `;
+        testsList.appendChild(card);
+
+        const timerEl = card.querySelector(`#timer-${t.id}`);
+        const startBtn = card.querySelector(`#start-${t.id}`);
+        const resetBtn = card.querySelector(`#reset-${t.id}`);
+        const noteEl = card.querySelector(`#note-${t.id}`);
+
+        startBtn.disabled = live;
+        startBtn.addEventListener("click", () => {
+          if (runningTimers[t.id] || remainingSeconds[t.id] <= 0) return;
+          startBtn.disabled = true;
+          startBtn.textContent = "Running";
+          timerEl.classList.add("live");
+          noteEl.textContent = "Timer is running...";
+          runningTimers[t.id] = setInterval(() => {
+            remainingSeconds[t.id] -= 1;
+            timerEl.textContent = formatTime(remainingSeconds[t.id]);
+            if (remainingSeconds[t.id] <= 0) {
+              stopTimer(t.id);
+              remainingSeconds[t.id] = 0;
+              startBtn.disabled = true;
+              startBtn.textContent = "Completed";
+              timerEl.classList.remove("live");
+              noteEl.textContent = "Time up. Test completed.";
+              timerEl.textContent = "00:00";
+            }
+          }, 1000);
+        });
+
+        resetBtn.addEventListener("click", () => {
+          stopTimer(t.id);
+          remainingSeconds[t.id] = t.minutes * 60;
+          timerEl.textContent = formatTime(remainingSeconds[t.id]);
+          timerEl.classList.remove("live");
+          startBtn.disabled = false;
+          startBtn.textContent = "Start Test";
+          noteEl.textContent = "Ready to start.";
+        });
+      }
+    }
+
+    async function init() {
+      if (!api || !api.isConfigured()) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      try {
+        currentUser = await api.getCurrentUser();
+      } catch {
+        currentUser = null;
+      }
+      if (!currentUser) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      welcomeText.textContent = `Signed in as ${currentUser.email || "user"}`;
+      try {
+        const onboarding = await api.getUserOnboarding(currentUser.id);
+        const preferredExam = onboarding && typeof onboarding.exam_target === "string"
+          ? onboarding.exam_target.trim().toUpperCase()
+          : "";
+        if (["JEE", "NEET", "UPSC"].includes(preferredExam)) {
+          examSelect.value = preferredExam;
+        }
+      } catch {}
+      renderTests();
+    }
+
+    examSelect.addEventListener("change", renderTests);
+    goStudyBtn.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+    goPracticeBtn.addEventListener("click", () => {
+      window.location.href = "practice-hub.html";
+    });
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        await api.signOut();
+      } catch {}
+      window.location.href = "index.html";
+    });
+
+    init();
+  </script>
+</body>
+</html>

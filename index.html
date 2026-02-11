@@ -564,7 +564,7 @@
       backdrop-filter: blur(6px);
       padding: 0.55rem 0.8rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 0.6rem;
     }
 
@@ -742,6 +742,7 @@
     <nav class="bottom-nav" aria-label="Bottom navigation">
       <button id="tabStudyBtn" class="bottom-btn active" type="button">Study Materials</button>
       <button id="goPracticeBtn" class="bottom-btn" type="button">Practice</button>
+      <button id="goTestSeriesBtn" class="bottom-btn" type="button">Test Series</button>
     </nav>
   </main>
 
@@ -770,6 +771,7 @@
     const emptyState = document.getElementById("emptyState");
     const tabStudyBtn = document.getElementById("tabStudyBtn");
     const goPracticeBtn = document.getElementById("goPracticeBtn");
+    const goTestSeriesBtn = document.getElementById("goTestSeriesBtn");
     const onboardingTitle = document.getElementById("onboardingTitle");
     const onboardingMeta = document.getElementById("onboardingMeta");
     const onboardingOptions = document.getElementById("onboardingOptions");
@@ -827,6 +829,7 @@
     function setActiveTab() {
       tabStudyBtn.classList.add("active");
       goPracticeBtn.classList.remove("active");
+      goTestSeriesBtn.classList.remove("active");
     }
 
     function displayNameWithoutExtension(fileName) {
@@ -1241,6 +1244,9 @@
     tabStudyBtn.addEventListener("click", () => setActiveTab());
     goPracticeBtn.addEventListener("click", () => {
       window.location.href = "practice-hub.html";
+    });
+    goTestSeriesBtn.addEventListener("click", () => {
+      window.location.href = "test-series.html";
     });
 
     fileSearch.addEventListener("input", renderFiles);

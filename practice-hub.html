@@ -62,15 +62,48 @@
       cursor: pointer;
       white-space: nowrap;
     }
+    .exam-shell {
+      border: 1px solid #2f3a56;
+      border-radius: 12px;
+      background: linear-gradient(155deg, #171f34, #13192a);
+      padding: 0.58rem 0.65rem;
+      margin-bottom: 0.9rem;
+    }
+    .exam-label {
+      font-size: 0.77rem;
+      color: #8ea1cb;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 0.34rem;
+      font-weight: 600;
+    }
+    .exam-select-wrap {
+      position: relative;
+    }
+    .exam-select-wrap::after {
+      content: "";
+      position: absolute;
+      right: 0.68rem;
+      top: 50%;
+      width: 0.46rem;
+      height: 0.46rem;
+      border-right: 2px solid #9cb2de;
+      border-bottom: 2px solid #9cb2de;
+      transform: translateY(-65%) rotate(45deg);
+      pointer-events: none;
+      opacity: 0.9;
+    }
     .practice-select {
       width: 100%;
-      border: 1px solid #3a4260;
-      border-radius: 12px;
-      background: #1d2438;
+      border: 1px solid #3f4f77;
+      border-radius: 11px;
+      background: #1b2642;
       color: #eef3ff;
-      padding: 0.68rem 0.72rem;
+      padding: 0.66rem 2rem 0.66rem 0.72rem;
       font: inherit;
-      margin-bottom: 0.9rem;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
     }
     .topic-shell {
       border: 1px solid #2b3653;
@@ -277,7 +310,7 @@
       backdrop-filter: blur(6px);
       padding: 0.55rem 0.8rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 0.6rem;
     }
     .bottom-btn {
@@ -324,11 +357,16 @@
         <button id="logoutBtn" class="logout-btn" type="button">Logout</button>
       </div>
 
-      <select id="practiceExamSelect" class="practice-select" aria-label="Select exam">
-        <option value="JEE">JEE</option>
-        <option value="NEET">NEET</option>
-        <option value="UPSC">UPSC</option>
-      </select>
+      <div class="exam-shell">
+        <div class="exam-label">Exam</div>
+        <div class="exam-select-wrap">
+          <select id="practiceExamSelect" class="practice-select" aria-label="Select exam">
+            <option value="JEE">JEE</option>
+            <option value="NEET">NEET</option>
+            <option value="UPSC">UPSC</option>
+          </select>
+        </div>
+      </div>
 
       <div id="topicShell" class="topic-shell">
         <button id="topicPickerBtn" class="topic-picker-btn" type="button" aria-haspopup="dialog" aria-controls="chapterPickerOverlay">
@@ -356,6 +394,7 @@
   <nav class="bottom-nav" aria-label="Bottom navigation">
     <button id="goStudyBtn" class="bottom-btn" type="button">Study Materials</button>
     <button class="bottom-btn active" type="button">Practice</button>
+    <button id="goTestSeriesBtn" class="bottom-btn" type="button">Test Series</button>
   </nav>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -369,6 +408,7 @@
     const welcomeText = document.getElementById("welcomeText");
     const logoutBtn = document.getElementById("logoutBtn");
     const goStudyBtn = document.getElementById("goStudyBtn");
+    const goTestSeriesBtn = document.getElementById("goTestSeriesBtn");
     const practiceExamSelect = document.getElementById("practiceExamSelect");
     const topicPickerBtn = document.getElementById("topicPickerBtn");
     const topicPickerTitle = document.getElementById("topicPickerTitle");
@@ -546,6 +586,9 @@
 
     goStudyBtn.addEventListener("click", () => {
       window.location.href = "index.html";
+    });
+    goTestSeriesBtn.addEventListener("click", () => {
+      window.location.href = "test-series.html";
     });
 
     logoutBtn.addEventListener("click", async () => {
