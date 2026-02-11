@@ -324,6 +324,40 @@
       gap: 0.9rem;
     }
 
+    .practice-picker-btn {
+      width: 100%;
+      border: 1px solid #395079;
+      border-radius: 13px;
+      background: linear-gradient(160deg, #1f2f53, #192743);
+      color: #eef3ff;
+      padding: 0.7rem 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      cursor: pointer;
+      text-align: left;
+      margin-bottom: 0.8rem;
+    }
+
+    .practice-picker-title {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+
+    .practice-picker-meta {
+      margin-top: 0.2rem;
+      color: #a8b5d9;
+      font-size: 0.86rem;
+    }
+
+    .practice-picker-caret {
+      color: #9eb2df;
+      font-size: 0.9rem;
+      flex: 0 0 auto;
+    }
+
     .practice-topic-card {
       border: 1px solid #28314a;
       border-radius: 13px;
@@ -416,6 +450,11 @@
       line-height: 1.1;
     }
 
+    .journey-dot {
+      fill: #79c9ff;
+      opacity: 0.95;
+    }
+
     .track-easy .hex.practice { background: linear-gradient(145deg, #56c93a, #3b9f24); }
     .track-medium .hex.practice { background: linear-gradient(145deg, #3aa7f2, #1f75bd); }
     .track-hard .hex.practice { background: linear-gradient(145deg, #9656f2, #6730b9); }
@@ -432,6 +471,86 @@
       color: #aab4d4;
       font-size: 0.92rem;
       padding: 0.65rem 0.1rem;
+    }
+
+    .picker-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(5, 7, 12, 0.72);
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+    }
+
+    .picker-modal {
+      width: min(560px, 95vw);
+      max-height: min(78vh, 620px);
+      overflow: auto;
+      border: 1px solid #334775;
+      border-radius: 14px;
+      background: linear-gradient(165deg, #131b30 0%, #101725 100%);
+      padding: 0.9rem;
+    }
+
+    .picker-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .picker-title {
+      margin: 0;
+      font-size: 1.04rem;
+    }
+
+    .picker-close {
+      border: 1px solid #445682;
+      background: #1f2a45;
+      color: #eff4ff;
+      border-radius: 10px;
+      padding: 0.32rem 0.54rem;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.86rem;
+    }
+
+    .picker-section {
+      margin-top: 0.75rem;
+    }
+
+    .picker-subject {
+      margin: 0;
+      font-size: 0.92rem;
+      color: #c9d8ff;
+      font-weight: 600;
+    }
+
+    .picker-chapters {
+      margin-top: 0.45rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .picker-chip {
+      border: 1px solid #40537f;
+      border-radius: 999px;
+      background: #1c2743;
+      color: #e7ecff;
+      padding: 0.36rem 0.64rem;
+      font: inherit;
+      font-size: 0.83rem;
+      cursor: pointer;
+      line-height: 1.2;
+    }
+
+    .picker-chip.active {
+      border-color: #4ac0ff;
+      background: #20456e;
+      box-shadow: inset 0 0 0 1px rgba(77, 193, 255, 0.35);
     }
 
     .bottom-nav {
@@ -624,6 +743,13 @@
           <option value="NEET">NEET</option>
           <option value="UPSC">UPSC</option>
         </select>
+        <button id="practicePickerBtn" class="practice-picker-btn" type="button" aria-haspopup="dialog" aria-controls="chapterPickerOverlay">
+          <span>
+            <h3 id="practicePickerTitle" class="practice-picker-title"></h3>
+            <div id="practicePickerMeta" class="practice-picker-meta"></div>
+          </span>
+          <span class="practice-picker-caret">&#9660;</span>
+        </button>
         <div id="practiceTrackList" class="practice-topic-list"></div>
       </div>
     </section>
@@ -633,6 +759,16 @@
       <button id="tabPracticeBtn" class="bottom-btn" type="button">Practice</button>
     </nav>
   </main>
+
+  <div id="chapterPickerOverlay" class="picker-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="chapterPickerTitle">
+    <div class="picker-modal">
+      <div class="picker-head">
+        <h3 id="chapterPickerTitle" class="picker-title">Select Subject and Chapter</h3>
+        <button id="closeChapterPicker" class="picker-close" type="button">Close</button>
+      </div>
+      <div id="chapterPickerBody"></div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
@@ -663,7 +799,13 @@
     const tabStudyBtn = document.getElementById("tabStudyBtn");
     const tabPracticeBtn = document.getElementById("tabPracticeBtn");
     const practiceExamSelect = document.getElementById("practiceExamSelect");
+    const practicePickerBtn = document.getElementById("practicePickerBtn");
+    const practicePickerTitle = document.getElementById("practicePickerTitle");
+    const practicePickerMeta = document.getElementById("practicePickerMeta");
     const practiceTrackList = document.getElementById("practiceTrackList");
+    const chapterPickerOverlay = document.getElementById("chapterPickerOverlay");
+    const chapterPickerBody = document.getElementById("chapterPickerBody");
+    const closeChapterPicker = document.getElementById("closeChapterPicker");
     const onboardingTitle = document.getElementById("onboardingTitle");
     const onboardingMeta = document.getElementById("onboardingMeta");
     const onboardingOptions = document.getElementById("onboardingOptions");
@@ -676,6 +818,8 @@
     let showAnalyticsForUser = true;
     let activeMainTab = "study";
     let selectedPracticeExam = "JEE";
+    let selectedPracticeSubject = "";
+    let selectedPracticeChapter = "";
     let onboardingUser = null;
     let onboardingStep = 1;
     let onboardingAnswers = {
@@ -746,6 +890,40 @@
       return out;
     }
 
+    function ensureSelectedPracticeTopic() {
+      const subjectMap = getCurriculumTopicsForExam(selectedPracticeExam);
+      const hasSelected = Boolean(
+        selectedPracticeSubject
+        && selectedPracticeChapter
+        && Array.isArray(subjectMap[selectedPracticeSubject])
+        && subjectMap[selectedPracticeSubject].includes(selectedPracticeChapter)
+      );
+      if (hasSelected) return true;
+      const subjects = Object.keys(subjectMap);
+      if (!subjects.length) {
+        selectedPracticeSubject = "";
+        selectedPracticeChapter = "";
+        return false;
+      }
+      selectedPracticeSubject = subjects[0];
+      const chapters = Array.isArray(subjectMap[selectedPracticeSubject]) ? subjectMap[selectedPracticeSubject] : [];
+      selectedPracticeChapter = chapters[0] || "";
+      return Boolean(selectedPracticeChapter);
+    }
+
+    function renderPracticePickerButton() {
+      const ok = ensureSelectedPracticeTopic();
+      if (!ok) {
+        practicePickerTitle.textContent = "No chapter available";
+        practicePickerMeta.textContent = "";
+        practicePickerBtn.disabled = true;
+        return;
+      }
+      practicePickerBtn.disabled = false;
+      practicePickerTitle.textContent = selectedPracticeChapter;
+      practicePickerMeta.textContent = selectedPracticeSubject;
+    }
+
     function createPracticeJourney(subject, chapter) {
       const tracks = [
         { id: "Easy", label: "Easy", css: "track-easy" },
@@ -759,8 +937,12 @@
       wrap.innerHTML = `
         <div class="journey-stage">
           <svg class="journey-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <polyline points="18,18 50,44 82,18" fill="none" stroke="rgba(116,194,255,0.92)" stroke-width="1.8"/>
-            <polyline points="18,80 50,44 82,80" fill="none" stroke="rgba(116,194,255,0.92)" stroke-width="1.8"/>
+            <polyline points="18,18 82,18 50,44 18,80 82,80" fill="none" stroke="rgba(116,194,255,0.92)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2.4 2.8"/>
+            <circle class="journey-dot" cx="18" cy="18" r="1.5"></circle>
+            <circle class="journey-dot" cx="82" cy="18" r="1.5"></circle>
+            <circle class="journey-dot" cx="50" cy="44" r="1.5"></circle>
+            <circle class="journey-dot" cx="18" cy="80" r="1.5"></circle>
+            <circle class="journey-dot" cx="82" cy="80" r="1.5"></circle>
           </svg>
         </div>
       `;
@@ -779,28 +961,72 @@
       return wrap;
     }
 
+    function openChapterPicker() {
+      const subjectMap = getCurriculumTopicsForExam(selectedPracticeExam);
+      const subjects = Object.keys(subjectMap);
+      chapterPickerBody.innerHTML = "";
+      if (!subjects.length) {
+        const msg = document.createElement("div");
+        msg.className = "practice-empty";
+        msg.textContent = "No chapter available for selected exam.";
+        chapterPickerBody.appendChild(msg);
+      } else {
+        for (const subject of subjects) {
+          const section = document.createElement("section");
+          section.className = "picker-section";
+          const heading = document.createElement("h4");
+          heading.className = "picker-subject";
+          heading.textContent = subject;
+          section.appendChild(heading);
+
+          const list = document.createElement("div");
+          list.className = "picker-chapters";
+          const chapters = Array.isArray(subjectMap[subject]) ? subjectMap[subject] : [];
+          for (const chapter of chapters) {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = `picker-chip ${subject === selectedPracticeSubject && chapter === selectedPracticeChapter ? "active" : ""}`.trim();
+            chip.textContent = chapter;
+            chip.addEventListener("click", () => {
+              selectedPracticeSubject = subject;
+              selectedPracticeChapter = chapter;
+              renderPracticePickerButton();
+              renderPracticeTopics();
+              closeChapterPickerDialog();
+            });
+            list.appendChild(chip);
+          }
+          section.appendChild(list);
+          chapterPickerBody.appendChild(section);
+        }
+      }
+      chapterPickerOverlay.classList.remove("hidden");
+    }
+
+    function closeChapterPickerDialog() {
+      chapterPickerOverlay.classList.add("hidden");
+    }
+
     function renderPracticeTopics() {
       practiceTrackList.innerHTML = "";
-      const entries = getPracticeChapterEntries();
-      if (!entries.length) {
+      renderPracticePickerButton();
+      if (!selectedPracticeSubject || !selectedPracticeChapter) {
         const msg = document.createElement("div");
         msg.className = "practice-empty";
         msg.textContent = "No chapter available for selected exam.";
         practiceTrackList.appendChild(msg);
         return;
       }
-      for (const item of entries) {
-        const card = document.createElement("article");
-        card.className = "practice-topic-card";
-        card.innerHTML = `
-          <div class="practice-card-header">
-            <h3 class="practice-card-title">${item.chapter}</h3>
-            <div class="practice-card-meta">${item.subject}</div>
-          </div>
-        `;
-        card.appendChild(createPracticeJourney(item.subject, item.chapter));
-        practiceTrackList.appendChild(card);
-      }
+      const card = document.createElement("article");
+      card.className = "practice-topic-card";
+      card.innerHTML = `
+        <div class="practice-card-header">
+          <h3 class="practice-card-title">${selectedPracticeChapter}</h3>
+          <div class="practice-card-meta">${selectedPracticeSubject}</div>
+        </div>
+      `;
+      card.appendChild(createPracticeJourney(selectedPracticeSubject, selectedPracticeChapter));
+      practiceTrackList.appendChild(card);
     }
 
     function displayNameWithoutExtension(fileName) {
@@ -944,6 +1170,8 @@
       progressByFileId = {};
       showAnalyticsForUser = true;
       selectedPracticeExam = "JEE";
+      selectedPracticeSubject = "";
+      selectedPracticeChapter = "";
       setActiveTab("study");
       onboardingUser = null;
       onboardingStep = 1;
@@ -1011,9 +1239,9 @@
       appRoot.classList.remove("hidden");
       welcomeText.textContent = `Signed in as ${user.email || "user"}`;
       try {
-        showAnalyticsForUser = await api.isFeatureEnabledForUser("analytics_library", user.id, 100);
+        showAnalyticsForUser = await api.isFeatureEnabledForUser("analytics_library", user.id, 0);
       } catch {
-        showAnalyticsForUser = true;
+        showAnalyticsForUser = false;
       }
       const preferredExam = onboardingData && typeof onboardingData.exam_target === "string"
         ? onboardingData.exam_target.trim().toUpperCase()
@@ -1224,7 +1452,16 @@
     tabPracticeBtn.addEventListener("click", () => setActiveTab("practice"));
     practiceExamSelect.addEventListener("change", () => {
       selectedPracticeExam = practiceExamSelect.value;
+      selectedPracticeSubject = "";
+      selectedPracticeChapter = "";
       renderPracticeTopics();
+    });
+    practicePickerBtn.addEventListener("click", openChapterPicker);
+    closeChapterPicker.addEventListener("click", closeChapterPickerDialog);
+    chapterPickerOverlay.addEventListener("click", (event) => {
+      if (event.target === chapterPickerOverlay) {
+        closeChapterPickerDialog();
+      }
     });
 
     fileSearch.addEventListener("input", renderFiles);

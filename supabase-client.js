@@ -237,7 +237,45 @@
     return data;
   }
 
+  async function getUserFeatureOverride(featureKey, userId) {
+    const key = normalizeFeatureKey(featureKey);
+    if (!key) throw new Error("Feature key is required.");
+    if (!userId) throw new Error("User id is required.");
+    const supa = getClient();
+    const { data, error } = await supa
+      .from("ab_user_features")
+      .select("user_id,feature_key,is_enabled,updated_at")
+      .eq("user_id", userId)
+      .eq("feature_key", key)
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
+  async function upsertUserFeatureOverride(userId, featureKey, isEnabled) {
+    const key = normalizeFeatureKey(featureKey);
+    if (!key) throw new Error("Feature key is required.");
+    if (!userId) throw new Error("User id is required.");
+    const supa = getClient();
+    const { data, error } = await supa
+      .from("ab_user_features")
+      .upsert({
+        user_id: userId,
+        feature_key: key,
+        is_enabled: Boolean(isEnabled),
+        updated_at: new Date().toISOString()
+      }, { onConflict: "user_id,feature_key" })
+      .select("user_id,feature_key,is_enabled,updated_at")
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
   async function isFeatureEnabledForUser(featureKey, userId, defaultPercent = 100) {
+    const userOverride = await getUserFeatureOverride(featureKey, userId);
+    if (userOverride) {
+      return Boolean(userOverride.is_enabled);
+    }
     const cfg = await getAbTestConfig(featureKey);
     if (!cfg) return isUserInRollout(userId, defaultPercent);
     if (!cfg.is_enabled) return false;
@@ -289,6 +327,43 @@
     return data;
   }
 
+  async function listSegmentParams(activeOnly = true) {
+    const supa = getClient();
+    let q = supa
+      .from("ab_segment_params")
+      .select("param_key,display_name,data_type,is_active,updated_at")
+      .order("display_name", { ascending: true });
+    if (activeOnly) {
+      q = q.eq("is_active", true);
+    }
+    const { data, error } = await q;
+    if (error) throw error;
+    return Array.isArray(data) ? data : [];
+  }
+
+  async function applyAbSegmentRollout(featureKey, paramKey, operator, valueText, rolloutPercent, isEnabled = true) {
+    const key = normalizeFeatureKey(featureKey);
+    const param = String(paramKey || "").trim().toLowerCase();
+    const op = String(operator || "").trim().toLowerCase();
+    const value = String(valueText || "").trim();
+    const pct = normalizePercent(rolloutPercent);
+    if (!key) throw new Error("Feature key is required.");
+    if (!param) throw new Error("Segment param is required.");
+    if (!op) throw new Error("Operator is required.");
+    if (!value) throw new Error("Value is required.");
+    const supa = getClient();
+    const { data, error } = await supa.rpc("apply_ab_segment_rollout", {
+      p_feature_key: key,
+      p_param_key: param,
+      p_operator: op,
+      p_value_text: value,
+      p_rollout_percent: pct,
+      p_is_enabled: Boolean(isEnabled)
+    });
+    if (error) throw error;
+    return data || null;
+  }
+
   async function getUserOnboarding(userId) {
     const supa = getClient();
     const { data, error } = await supa
@@ -331,11 +406,15 @@
     upsertProgress,
     getAbTestConfig,
     upsertAbTestConfig,
+    getUserFeatureOverride,
+    upsertUserFeatureOverride,
     isFeatureEnabledForUser,
     isUserInRollout,
     isCurrentUserAdmin,
     listAbFeatures,
     upsertAbFeature,
+    listSegmentParams,
+    applyAbSegmentRollout,
     getUserOnboarding,
     upsertUserOnboarding
   };
