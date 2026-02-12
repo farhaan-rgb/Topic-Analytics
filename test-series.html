@@ -460,8 +460,6 @@
           <button id="examTrigger" class="select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">JEE</button>
           <div id="examMenu" class="select-menu hidden" role="listbox" aria-label="Select exam">
             <button class="select-option" data-exam="JEE" type="button">JEE</button>
-            <button class="select-option" data-exam="NEET" type="button">NEET</button>
-            <button class="select-option" data-exam="UPSC" type="button">UPSC</button>
           </div>
         </div>
       </div>
@@ -566,13 +564,7 @@
     const defaultStats = {
       "JEE:jee-1": { completed: 1240, rating_sum: 5230, rating_count: 1320 },
       "JEE:jee-2": { completed: 890, rating_sum: 3660, rating_count: 940 },
-      "JEE:jee-3": { completed: 640, rating_sum: 2590, rating_count: 700 },
-      "NEET:neet-1": { completed: 1530, rating_sum: 6550, rating_count: 1620 },
-      "NEET:neet-2": { completed: 1010, rating_sum: 4200, rating_count: 1090 },
-      "NEET:neet-3": { completed: 730, rating_sum: 2990, rating_count: 790 },
-      "UPSC:upsc-1": { completed: 950, rating_sum: 3870, rating_count: 1020 },
-      "UPSC:upsc-2": { completed: 580, rating_sum: 2280, rating_count: 620 },
-      "UPSC:upsc-3": { completed: 420, rating_sum: 1680, rating_count: 470 }
+      "JEE:jee-3": { completed: 640, rating_sum: 2590, rating_count: 700 }
     };
 
     const testTemplates = {
@@ -580,16 +572,6 @@
         { id: "jee-1", title: "JEE Mock Test 1", syllabus: "Maths + Physics + Chemistry", questions: 90, minutes: 180, isCustom: false },
         { id: "jee-2", title: "JEE Mock Test 2", syllabus: "Core Concepts Revision", questions: 75, minutes: 150, isCustom: false },
         { id: "jee-3", title: "JEE Speed Test", syllabus: "Mixed High-Weightage Topics", questions: 45, minutes: 60, isCustom: false }
-      ],
-      NEET: [
-        { id: "neet-1", title: "NEET Mock Test 1", syllabus: "Biology + Physics + Chemistry", questions: 180, minutes: 180, isCustom: false },
-        { id: "neet-2", title: "NEET Mock Test 2", syllabus: "NCERT Based Mix", questions: 120, minutes: 120, isCustom: false },
-        { id: "neet-3", title: "NEET Time Trial", syllabus: "High-Frequency NEET Topics", questions: 60, minutes: 60, isCustom: false }
-      ],
-      UPSC: [
-        { id: "upsc-1", title: "UPSC Prelims Mock 1", syllabus: "Polity + History + Geography", questions: 100, minutes: 120, isCustom: false },
-        { id: "upsc-2", title: "UPSC CSAT Drill", syllabus: "Aptitude + Reasoning + Comprehension", questions: 80, minutes: 120, isCustom: false },
-        { id: "upsc-3", title: "UPSC Rapid Revision Test", syllabus: "Static + Current Affairs Blend", questions: 50, minutes: 60, isCustom: false }
       ]
     };
 
@@ -616,9 +598,9 @@
       try {
         parsed = JSON.parse(localStorage.getItem(CUSTOM_TESTS_STORAGE_KEY) || "null");
       } catch {}
-      const base = { JEE: [], NEET: [], UPSC: [] };
+      const base = { JEE: [] };
       if (parsed && typeof parsed === "object") {
-        for (const exam of ["JEE", "NEET", "UPSC"]) {
+        for (const exam of ["JEE"]) {
           base[exam] = Array.isArray(parsed[exam]) ? parsed[exam] : [];
         }
       }
@@ -836,7 +818,7 @@
         const preferredExam = onboarding && typeof onboarding.exam_target === "string"
           ? onboarding.exam_target.trim().toUpperCase()
           : "";
-        if (["JEE", "NEET", "UPSC"].includes(preferredExam)) {
+        if (preferredExam === "JEE") {
           selectedExam = preferredExam;
         }
       } catch {}

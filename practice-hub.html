@@ -390,8 +390,6 @@
           <button id="examTrigger" class="exam-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">JEE</button>
           <div id="examMenu" class="exam-menu hidden" role="listbox" aria-label="Select exam">
             <button class="exam-option" data-exam="JEE" type="button">JEE</button>
-            <button class="exam-option" data-exam="NEET" type="button">NEET</button>
-            <button class="exam-option" data-exam="UPSC" type="button">UPSC</button>
           </div>
         </div>
       </div>
@@ -610,17 +608,9 @@
       }
 
       welcomeText.textContent = `Signed in as ${currentUser.email || "user"}`;
-      try {
-        const onboarding = await api.getUserOnboarding(currentUser.id);
-        const preferredExam = onboarding && typeof onboarding.exam_target === "string"
-          ? onboarding.exam_target.trim().toUpperCase()
-          : "";
-        selectedPracticeExam = ["JEE", "NEET", "UPSC"].includes(preferredExam) ? preferredExam : "JEE";
-      } catch {
-        selectedPracticeExam = "JEE";
-      }
+      selectedPracticeExam = "JEE";
       const examFromQuery = (params.get("exam") || "").trim().toUpperCase();
-      if (["JEE", "NEET", "UPSC"].includes(examFromQuery)) {
+      if (examFromQuery === "JEE") {
         selectedPracticeExam = examFromQuery;
       }
       syncExamDropdown();
@@ -670,8 +660,8 @@
 
     /* kept for behavior parity: refresh topic if exam changes from any future integrations */
     window.updatePracticeExam = (exam) => {
-      if (!["JEE", "NEET", "UPSC"].includes(String(exam || "").toUpperCase())) return;
-      selectedPracticeExam = String(exam).toUpperCase();
+      if (String(exam || "").toUpperCase() !== "JEE") return;
+      selectedPracticeExam = "JEE";
       selectedPracticeSubject = "";
       selectedPracticeChapter = "";
       closeExamMenu();

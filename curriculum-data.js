@@ -49,52 +49,6 @@
         "Hydrocarbons",
         "Biomolecules"
       ]
-    },
-    NEET: {
-      Biology: [
-        "Cell Structure",
-        "Genetics",
-        "Human Physiology",
-        "Plant Physiology",
-        "Ecology"
-      ],
-      Physics: [
-        "Kinematics",
-        "Laws of Motion",
-        "Thermodynamics",
-        "Electrostatics",
-        "Optics"
-      ],
-      Chemistry: [
-        "Atomic Structure",
-        "Chemical Bonding",
-        "Equilibrium",
-        "Organic Basics",
-        "Biomolecules"
-      ]
-    },
-    UPSC: {
-      Polity: [
-        "Constitutional Framework",
-        "Parliament",
-        "Judiciary",
-        "Federalism",
-        "Local Governance"
-      ],
-      History: [
-        "Ancient India",
-        "Medieval India",
-        "Modern India",
-        "Freedom Struggle",
-        "Post Independence India"
-      ],
-      Geography: [
-        "Physical Geography",
-        "Indian Geography",
-        "World Geography",
-        "Resources",
-        "Disaster Management"
-      ]
     }
   };
 
