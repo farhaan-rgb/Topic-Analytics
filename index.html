@@ -781,7 +781,6 @@
     let currentUser = null;
     let currentFiles = [];
     let progressByFileId = {};
-    let showAnalyticsForUser = true;
     let onboardingUser = null;
     let onboardingStep = 1;
     let onboardingAnswers = {
@@ -971,7 +970,6 @@
       currentUser = null;
       currentFiles = [];
       progressByFileId = {};
-      showAnalyticsForUser = true;
       setActiveTab();
       onboardingUser = null;
       onboardingStep = 1;
@@ -1038,11 +1036,6 @@
       onboardingRoot.classList.add("hidden");
       appRoot.classList.remove("hidden");
       welcomeText.textContent = `Signed in as ${user.email || "user"}`;
-      try {
-        showAnalyticsForUser = await api.isFeatureEnabledForUser("analytics_library", user.id, 0);
-      } catch {
-        showAnalyticsForUser = false;
-      }
       setActiveTab();
       fileSearch.value = "";
       await loadLibraryData();
@@ -1137,16 +1130,14 @@
           }
 
           actions.append(quickBtn, practiceBtn);
-          if (showAnalyticsForUser) {
-            const analyticsBtn = document.createElement("button");
-            analyticsBtn.className = "action-btn";
-            analyticsBtn.type = "button";
-            analyticsBtn.innerHTML = '<span class="action-icon-slot"><span class="hex analytics">&#128202;</span></span><span class="action-label">Analytics</span>';
-            analyticsBtn.addEventListener("click", () => {
-              window.location.href = `analytics.html?id=${encodeURIComponent(file.id)}`;
-            });
-            actions.appendChild(analyticsBtn);
-          }
+          const analyticsBtn = document.createElement("button");
+          analyticsBtn.className = "action-btn";
+          analyticsBtn.type = "button";
+          analyticsBtn.innerHTML = '<span class="action-icon-slot"><span class="hex analytics">&#128202;</span></span><span class="action-label">Analytics</span>';
+          analyticsBtn.addEventListener("click", () => {
+            window.location.href = `analytics.html?id=${encodeURIComponent(file.id)}`;
+          });
+          actions.appendChild(analyticsBtn);
           card.append(name, actions);
           fileGroupsEl.appendChild(card);
         }
