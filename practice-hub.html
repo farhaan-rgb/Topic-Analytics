@@ -163,6 +163,25 @@
       color: #a8b5d9;
       font-size: 0.86rem;
     }
+    .topic-proficiency {
+      margin-top: 0.35rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+    .topic-proficiency-note {
+      margin-top: 0.18rem;
+      font-size: 0.85rem;
+    }
+    .topic-proficiency.not-started { color: #9fb0d6; }
+    .topic-proficiency.weak { color: #ff7b7b; }
+    .topic-proficiency.average { color: #f6b94a; }
+    .topic-proficiency.expert { color: #7fe6a8; }
+    .topic-proficiency.exceptional { color: #27c46b; }
+    .topic-proficiency-note.not-started { color: #c7d2f0; }
+    .topic-proficiency-note.weak { color: #ffc0c0; }
+    .topic-proficiency-note.average { color: #f3d59c; }
+    .topic-proficiency-note.expert { color: #baf2d2; }
+    .topic-proficiency-note.exceptional { color: #8be6b6; }
     .topic-picker-caret {
       color: #9eb2df;
       font-size: 0.9rem;
@@ -172,11 +191,12 @@
       border: 1px solid #28314a;
       border-radius: 12px;
       background: rgba(17, 25, 41, 0.75);
-      padding: 0.58rem 0.52rem 0.62rem;
+      padding: 0.8rem 0.52rem 0.7rem;
     }
     .journey-stage {
       position: relative;
-      height: 226px;
+      height: 290px;
+      margin-top: 0.6rem;
     }
     .journey-lines {
       position: absolute;
@@ -195,11 +215,11 @@
     }
     .journey-path-dots {
       fill: none;
-      stroke: rgba(153, 216, 255, 0.62);
-      stroke-width: 1.2;
+      stroke: rgba(153, 216, 255, 0.7);
+      stroke-width: 1.4;
       stroke-linecap: round;
       stroke-linejoin: round;
-      stroke-dasharray: 0.1 5.2;
+      stroke-dasharray: 0.4 6;
     }
     .track-btn {
       border: 0;
@@ -207,13 +227,18 @@
       color: #f3f4ff;
       cursor: pointer;
       padding: 0;
-      display: grid;
-      justify-items: center;
-      gap: 0.28rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
       min-width: 0;
       width: 96px;
       position: absolute;
       z-index: 1;
+    }
+    .track-btn.active .hex {
+      box-shadow: 0 0 0 2px rgba(84, 183, 255, 0.65), 0 0 18px rgba(84, 183, 255, 0.4);
+      border-color: rgba(200, 230, 255, 0.8);
     }
     .action-icon-slot {
       width: 86px;
@@ -237,17 +262,19 @@
       text-align: center;
       line-height: 1.1;
       font-weight: 600;
+      order: 1;
+      margin-top: 0.2rem;
     }
     .track-easy .hex { background: linear-gradient(145deg, #56c93a, #3b9f24); }
     .track-medium .hex { background: linear-gradient(145deg, #3aa7f2, #1f75bd); }
     .track-hard .hex { background: linear-gradient(145deg, #9656f2, #6730b9); }
     .track-pyqs .hex { background: linear-gradient(145deg, #cf8b2d, #9b651f); }
-    .track-test .hex { background: linear-gradient(145deg, #e4546d, #b92f50); }
-    .track-easy { left: 4px; top: 0; }
-    .track-medium { right: 4px; top: 0; }
-    .track-hard { left: 50%; transform: translateX(-50%); top: 72px; }
-    .track-pyqs { left: 4px; bottom: 0; }
-    .track-test { right: 4px; bottom: 0; }
+    .track-extras .hex { background: linear-gradient(145deg, #1fb6a5, #0d8176); }
+    .track-easy { left: 12px; top: 36px; }
+    .track-medium { left: 50%; transform: translateX(-50%); top: 36px; }
+    .track-hard { right: 12px; top: 36px; }
+    .track-pyqs { left: 12px; bottom: 4px; }
+    .track-extras { right: 12px; bottom: 4px; }
     .empty {
       border: 1px solid #303850;
       border-radius: 12px;
@@ -266,13 +293,13 @@
       padding: 1rem;
     }
     .picker-modal {
-      width: min(560px, 95vw);
-      max-height: min(78vh, 620px);
+      width: min(640px, 96vw);
+      max-height: min(84vh, 680px);
       overflow: auto;
       border: 1px solid #334775;
       border-radius: 14px;
       background: linear-gradient(165deg, #131b30 0%, #101725 100%);
-      padding: 0.9rem;
+      padding: 1rem 1.05rem 1.1rem;
     }
     .picker-head {
       display: flex;
@@ -307,7 +334,7 @@
       padding: 0;
       list-style: none;
       display: grid;
-      gap: 0.38rem;
+      gap: 0.6rem;
     }
     .picker-item-btn {
       width: 100%;
@@ -316,16 +343,34 @@
       border-radius: 10px;
       background: #1c2743;
       color: #e7ecff;
-      padding: 0.5rem 0.65rem;
+      padding: 0.7rem 0.8rem;
       font: inherit;
       font-size: 0.88rem;
       cursor: pointer;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 0.6rem;
     }
     .picker-item-btn.active {
       border-color: #4ac0ff;
       background: #20456e;
       box-shadow: inset 0 0 0 1px rgba(77, 193, 255, 0.35);
     }
+    .picker-item-level {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .level-not-started { color: #c7d2f0; background: rgba(159, 176, 214, 0.22); }
+    .level-weak { color: #ffc0c0; background: rgba(255, 123, 123, 0.22); }
+    .level-average { color: #f3d59c; background: rgba(246, 185, 74, 0.22); }
+    .level-expert { color: #baf2d2; background: rgba(127, 230, 168, 0.22); }
+    .level-exceptional { color: #8be6b6; background: rgba(39, 196, 107, 0.28); }
     .bottom-nav {
       position: fixed;
       left: 0;
@@ -355,6 +400,53 @@
       background: #223d63;
       color: #eff6ff;
       box-shadow: inset 0 0 0 1px rgba(47, 155, 240, 0.35);
+    }
+
+    .chat-fab {
+      position: fixed;
+      right: 1rem;
+      bottom: 4.8rem;
+      z-index: 25;
+      border: 0;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #2f9bf0, #2377bc);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 10px 18px rgba(35, 119, 188, 0.35);
+    }
+
+    .chat-fab svg { width: 34px; height: 34px; }
+    .chat-hint {
+      position: fixed;
+      right: 5.4rem;
+      bottom: 5.2rem;
+      z-index: 24;
+      max-width: 260px;
+      padding: 0.55rem 0.7rem;
+      border-radius: 12px;
+      background: linear-gradient(145deg, rgba(25, 36, 64, 0.98), rgba(12, 19, 36, 0.96));
+      border: 1px solid rgba(88, 163, 255, 0.55);
+      color: #eef5ff;
+      font-size: 0.82rem;
+      line-height: 1.3;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+      animation: hintPulse 2.8s ease-in-out infinite;
+    }
+    .chat-hint strong {
+      display: block;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #9fd3ff;
+      margin-bottom: 0.2rem;
+    }
+    @keyframes hintPulse {
+      0%, 100% { box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35), 0 0 0 rgba(88,163,255,0.0); }
+      50% { box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45), 0 0 14px rgba(88,163,255,0.35); }
     }
     @media (max-width: 520px) {
       .app-wrap { width: 95vw; }
@@ -390,6 +482,7 @@
           <button id="examTrigger" class="exam-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">JEE</button>
           <div id="examMenu" class="exam-menu hidden" role="listbox" aria-label="Select exam">
             <button class="exam-option" data-exam="JEE" type="button">JEE</button>
+            <button class="exam-option" data-exam="NEET" type="button">NEET (UG)</button>
           </div>
         </div>
       </div>
@@ -423,6 +516,18 @@
     <button id="goTestSeriesBtn" class="bottom-btn" type="button">Test Series</button>
   </nav>
 
+  <button id="chatFab" class="chat-fab" type="button" aria-label="Open chat">
+    <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+      <circle cx="32" cy="32" r="30" fill="#4FAEFF" stroke="#0C2B57" stroke-width="2"/>
+      <circle cx="24" cy="26" r="4" fill="#F6FBFF" stroke="#0C2B57" stroke-width="2"/>
+      <circle cx="40" cy="26" r="4" fill="#F6FBFF" stroke="#0C2B57" stroke-width="2"/>
+      <path d="M34 34 C32 36,30 36,28 34" stroke="#102443" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M46 40 C52 42,54 48,46 50" stroke="#2F7DFF" stroke-width="4" stroke-linecap="round"/>
+      <path d="M18 44 C20 52,28 54,30 46" stroke="#1B4FE0" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <div id="chatHint" class="chat-hint"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="supabase-client.js"></script>
@@ -445,11 +550,15 @@
     const chapterPickerOverlay = document.getElementById("chapterPickerOverlay");
     const closeChapterPicker = document.getElementById("closeChapterPicker");
     const chapterPickerBody = document.getElementById("chapterPickerBody");
+    const chatFab = document.getElementById("chatFab");
+    const chatHint = document.getElementById("chatHint");
 
     let currentUser = null;
     let selectedPracticeExam = "JEE";
     let selectedPracticeSubject = "";
     let selectedPracticeChapter = "";
+    let selectedPracticeTrack = "";
+    let attemptsCache = [];
 
     function syncExamDropdown() {
       examTrigger.textContent = selectedPracticeExam;
@@ -491,22 +600,66 @@
       return Boolean(selectedPracticeChapter);
     }
 
+    async function loadAttemptsForSubject() {
+      attemptsCache = [];
+      if (!api || !api.isConfigured() || !currentUser) return;
+      if (!selectedPracticeSubject) return;
+      try {
+        attemptsCache = await api.listChatAttempts(currentUser.id, selectedPracticeExam, selectedPracticeSubject);
+      } catch {
+        attemptsCache = [];
+      }
+    }
+
+    function getProficiencyForChapter(chapter) {
+      const attempts = attemptsCache.filter((a) => a.chapter === chapter);
+      if (!attempts.length) {
+        return {
+          level: "Not Started",
+          note: "Start with Easy questions to begin building confidence."
+        };
+      }
+      const correct = attempts.filter((a) => a.correct).length;
+      const accuracy = correct / attempts.length;
+      if (accuracy < 0.5) {
+        return {
+          level: "Weak",
+          note: "Stay with Easy and a few Medium questions to strengthen fundamentals."
+        };
+      }
+      if (accuracy < 0.75) {
+        return {
+          level: "Average",
+          note: "Mix Easy and Medium questions to sharpen accuracy."
+        };
+      }
+      if (accuracy < 0.9) {
+        return {
+          level: "Expert",
+          note: "Add Hard questions to push your speed and depth."
+        };
+      }
+      return {
+        level: "Exceptional",
+        note: "You’re strong here—try PYQs and mixed practice to stay sharp."
+      };
+    }
+
     function createPracticeJourney(subject, chapter) {
       const tracks = [
         { id: "Easy", label: "Easy", css: "track-easy" },
         { id: "Medium", label: "Medium", css: "track-medium" },
         { id: "Hard", label: "Hard", css: "track-hard" },
         { id: "PYQs", label: "PYQs", css: "track-pyqs" },
-        { id: "Test yourself", label: "Test yourself", css: "track-test" }
+        { id: "Extras", label: "Extras", css: "track-extras" }
       ];
       const wrap = document.createElement("div");
       wrap.className = "journey-wrap";
       wrap.innerHTML = `
+        <div id="topicProficiency" class="topic-proficiency"></div>
+        <div id="topicProficiencyNote" class="topic-proficiency-note"></div>
         <div class="journey-stage">
-          <svg class="journey-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <path class="journey-path-soft" d="M18 18 C42 18,58 18,82 18 C71 27,60 38,50 50 C40 62,29 73,18 82 C42 82,58 82,82 82"></path>
-            <path class="journey-path-dots" d="M18 18 C42 18,58 18,82 18 C71 27,60 38,50 50 C40 62,29 73,18 82 C42 82,58 82,82 82"></path>
-          </svg>
+          <svg class="journey-lines" viewBox="0 0 100 170" preserveAspectRatio="none" aria-hidden="true"></svg>
         </div>
       `;
 
@@ -514,9 +667,10 @@
       for (const track of tracks) {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = `track-btn ${track.css}`.trim();
+        btn.className = `track-btn ${track.css} ${track.id === selectedPracticeTrack ? "active" : ""}`.trim();
         btn.innerHTML = `<span class="action-icon-slot"><span class="hex">&#9654;</span></span><span class="action-label">${track.label}</span>`;
         btn.addEventListener("click", () => {
+          selectedPracticeTrack = track.id;
           const url = `topic-practice.html?exam=${encodeURIComponent(selectedPracticeExam)}&subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapter)}&track=${encodeURIComponent(track.id)}`;
           window.location.href = url;
         });
@@ -525,12 +679,14 @@
       return wrap;
     }
 
-    function renderPractice() {
+    async function renderPractice() {
       journeyHost.innerHTML = "";
       const ok = ensureSelectedPracticeTopic();
       if (!ok) {
         topicPickerTitle.textContent = "No chapter available";
         topicPickerMeta.textContent = "";
+        topicProficiency.textContent = "";
+        topicProficiencyNote.textContent = "";
         topicPickerBtn.disabled = true;
         const empty = document.createElement("div");
         empty.className = "empty";
@@ -541,10 +697,42 @@
       topicPickerBtn.disabled = false;
       topicPickerTitle.textContent = selectedPracticeChapter;
       topicPickerMeta.textContent = selectedPracticeSubject;
+      await loadAttemptsForSubject();
       journeyHost.appendChild(createPracticeJourney(selectedPracticeSubject, selectedPracticeChapter));
+      const profEl = journeyHost.querySelector("#topicProficiency");
+      const profNoteEl = journeyHost.querySelector("#topicProficiencyNote");
+      const prof = getProficiencyForChapter(selectedPracticeChapter);
+      if (profEl) {
+        profEl.textContent = prof.level ? `Level: ${prof.level}` : "";
+        profEl.className = `topic-proficiency ${String(prof.level || "").toLowerCase()}`.trim();
+      }
+      if (profNoteEl) {
+        profNoteEl.textContent = prof.note || "";
+        profNoteEl.className = `topic-proficiency-note ${String(prof.level || "").toLowerCase()}`.trim();
+      }
+      if (chatHint) {
+        const level = String(prof.level || "").toLowerCase();
+        const chapterAttempts = attemptsCache.filter((a) => a.chapter === selectedPracticeChapter);
+        const total = chapterAttempts.length;
+        const correct = chapterAttempts.filter((a) => a.correct).length;
+        const accuracy = total ? correct / total : 0;
+        let focus = "Easy questions";
+        if (level === "average") focus = "a mix of Easy and Medium questions";
+        if (level === "expert") focus = "Hard questions for depth";
+        if (level === "exceptional") focus = "PYQs to stay sharp";
+        if (level === "not started") focus = "Easy questions to get started";
+        if (level === "weak") focus = "Easy questions to rebuild fundamentals";
+
+        const shouldMock = (total >= 15 && accuracy >= 0.7) || level === "exceptional";
+        const msg = shouldMock
+          ? `You’ve built momentum in ${selectedPracticeChapter}. Try a Mock Test now to check timing and accuracy.`
+          : `Next up: ${selectedPracticeChapter} (${selectedPracticeSubject}) — try ${focus}.`;
+        chatHint.innerHTML = `<strong>Techy Suggests</strong>${msg}`;
+      }
     }
 
-    function openChapterPicker() {
+    async function openChapterPicker() {
+      await loadAttemptsForSubject();
       const subjectMap = getCurriculumTopicsForExam(selectedPracticeExam);
       const subjects = Object.keys(subjectMap);
       chapterPickerBody.innerHTML = "";
@@ -570,11 +758,13 @@
             const item = document.createElement("button");
             item.type = "button";
             item.className = `picker-item-btn ${subject === selectedPracticeSubject && chapter === selectedPracticeChapter ? "active" : ""}`.trim();
-            item.textContent = chapter;
-            item.addEventListener("click", () => {
+            const prof = getProficiencyForChapter(chapter);
+            const levelKey = String(prof.level || "").toLowerCase().replace(/\s+/g, "-");
+            item.innerHTML = `<span>${chapter}</span><span class="picker-item-level level-${levelKey}">${prof.level || ""}</span>`;
+            item.addEventListener("click", async () => {
               selectedPracticeSubject = subject;
               selectedPracticeChapter = chapter;
-              renderPractice();
+              await renderPractice();
               closeChapterPickerDialog();
             });
             li.appendChild(item);
@@ -609,12 +799,36 @@
 
       welcomeText.textContent = `Signed in as ${currentUser.email || "user"}`;
       selectedPracticeExam = "JEE";
+      try {
+        const onboarding = await api.getUserOnboarding(currentUser.id);
+        const preferredExamRaw = onboarding && typeof onboarding.exam_target === "string"
+          ? onboarding.exam_target.trim()
+          : "";
+        const preferredExam = preferredExamRaw.replace(/\(.*?\)/g, "").trim().toUpperCase();
+        if (["JEE", "NEET"].includes(preferredExam)) {
+          selectedPracticeExam = preferredExam;
+        }
+      } catch {}
       const examFromQuery = (params.get("exam") || "").trim().toUpperCase();
-      if (examFromQuery === "JEE") {
+      if (["JEE", "NEET"].includes(examFromQuery)) {
         selectedPracticeExam = examFromQuery;
       }
+      const subjectFromQuery = (params.get("subject") || "").trim();
+      const chapterFromQuery = (params.get("chapter") || "").trim();
+      const trackFromQuery = (params.get("track") || "").trim();
+      if (trackFromQuery) {
+        selectedPracticeTrack = trackFromQuery;
+      }
+      if (subjectFromQuery && chapterFromQuery) {
+        const subjectMap = getCurriculumTopicsForExam(selectedPracticeExam);
+        const chapters = Array.isArray(subjectMap[subjectFromQuery]) ? subjectMap[subjectFromQuery] : [];
+        if (chapters.includes(chapterFromQuery)) {
+          selectedPracticeSubject = subjectFromQuery;
+          selectedPracticeChapter = chapterFromQuery;
+        }
+      }
       syncExamDropdown();
-      renderPractice();
+      await renderPractice();
     }
 
     goStudyBtn.addEventListener("click", () => {
@@ -636,12 +850,12 @@
       syncExamDropdown();
     });
     for (const option of examOptions) {
-      option.addEventListener("click", () => {
+      option.addEventListener("click", async () => {
         selectedPracticeExam = option.dataset.exam;
         selectedPracticeSubject = "";
         selectedPracticeChapter = "";
         closeExamMenu();
-        renderPractice();
+        await renderPractice();
       });
     }
     document.addEventListener("click", (event) => {
@@ -658,14 +872,24 @@
       }
     });
 
+    if (chatFab) {
+      chatFab.addEventListener("click", () => {
+        try {
+          sessionStorage.setItem("chat_return_to", window.location.pathname.split("/").pop() || "practice-hub.html");
+        } catch {}
+        window.location.href = "chat.html";
+      });
+    }
+
     /* kept for behavior parity: refresh topic if exam changes from any future integrations */
-    window.updatePracticeExam = (exam) => {
-      if (String(exam || "").toUpperCase() !== "JEE") return;
-      selectedPracticeExam = "JEE";
+    window.updatePracticeExam = async (exam) => {
+      const normalized = String(exam || "").toUpperCase();
+      if (!["JEE", "NEET"].includes(normalized)) return;
+      selectedPracticeExam = normalized;
       selectedPracticeSubject = "";
       selectedPracticeChapter = "";
       closeExamMenu();
-      renderPractice();
+      await renderPractice();
     };
 
     init();

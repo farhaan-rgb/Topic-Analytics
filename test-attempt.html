@@ -353,6 +353,22 @@
           lbRaw[statsKey] = arr.slice(0, 100);
           localStorage.setItem(lbStore, JSON.stringify(lbRaw));
         }
+
+        const historyStore = "teachmint_test_history_v1";
+        const historyRaw = JSON.parse(localStorage.getItem(historyStore) || "{}");
+        const userKey = (userName || "Learner").toLowerCase();
+        const userHistory = Array.isArray(historyRaw[userKey]) ? historyRaw[userKey] : [];
+        userHistory.push({
+          exam,
+          test_id: testId,
+          title: testTitle,
+          score: correctCount,
+          total: questions.length,
+          is_custom: Boolean(isCustom),
+          at: Date.now()
+        });
+        historyRaw[userKey] = userHistory.slice(-100);
+        localStorage.setItem(historyStore, JSON.stringify(historyRaw));
       } catch {}
     }
 

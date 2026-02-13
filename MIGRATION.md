@@ -22,6 +22,21 @@
 ## 5) Onboarding for new signups
 - Re-run `/Users/farhaaan/Documents/New project/supabase-schema.sql` in Supabase SQL Editor.
 - This adds `user_onboarding` table used between signup and Library page.
+  - If you already created this table, add the new column:
+
+```sql
+alter table public.user_onboarding
+add column if not exists age_group text;
+```
+
+```sql
+alter table public.user_onboarding
+add column if not exists start_subject text;
+```
+
+## 6) Question bank (chat onboarding)
+- Re-run `/Users/farhaaan/Documents/New project/supabase-schema.sql` in Supabase SQL Editor.
+- This adds `question_bank` table used to fetch onboarding chat questions.
 
 ## Notes
 - Auth + file/progress data are now cloud-backed.

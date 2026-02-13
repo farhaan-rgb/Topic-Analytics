@@ -22,7 +22,7 @@
     .top {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       gap: 0.8rem;
       margin-bottom: 0.85rem;
     }
@@ -84,6 +84,17 @@
       text-align: left;
       font-size: 0.9rem;
     }
+    th.rank,
+    td.rank {
+      text-align: center;
+      width: 70px;
+    }
+    th.score,
+    td.score {
+      text-align: right;
+      width: 120px;
+      white-space: nowrap;
+    }
     th {
       background: rgba(29, 50, 82, 0.92);
       color: #dae6ff;
@@ -92,7 +103,6 @@
     }
     tr:last-child td { border-bottom: 0; }
     .rank {
-      width: 60px;
       font-weight: 700;
       color: #d6e6ff;
     }
@@ -104,6 +114,13 @@
       color: #d9e4ff;
       text-align: center;
       padding: 0.8rem;
+    }
+    @media (max-width: 600px) {
+      body { padding: 0.8rem; }
+      .top { flex-direction: column; align-items: flex-start; }
+      .prize-grid { grid-template-columns: 1fr; }
+      th, td { font-size: 0.86rem; padding: 0.52rem 0.55rem; }
+      th.score, td.score { width: 90px; }
     }
   </style>
 </head>
@@ -137,7 +154,7 @@
         <tr>
           <th class="rank">Rank</th>
           <th>User</th>
-          <th>Score</th>
+          <th class="score">Score</th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
@@ -211,7 +228,7 @@
         tr.innerHTML = `
           <td class="rank">#${i + 1}</td>
           <td>${row.name || "Learner"}</td>
-          <td>${row.score}/${row.total || 100}</td>
+          <td class="score">${row.score}/${row.total || 100}</td>
         `;
         rowsEl.appendChild(tr);
       }

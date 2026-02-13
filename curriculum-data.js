@@ -4,49 +4,45 @@
       Maths: [
         "Sets, Relations and Functions",
         "Complex Numbers and Quadratic Equations",
-        "Matrices and Determinants",
-        "Permutations and Combinations",
-        "Binomial Theorem",
-        "Sequence and Series",
         "Limit, Continuity and Differentiability",
         "Integral Calculus",
-        "Differential Equations",
-        "Coordinate Geometry",
-        "Three Dimensional Geometry",
-        "Vector Algebra",
-        "Statistics and Probability",
-        "Trigonometry"
+        "Vector Algebra"
       ],
       Physics: [
-        "Units and Measurements",
         "Kinematics",
         "Laws of Motion",
         "Work, Energy and Power",
-        "Rotational Motion",
-        "Gravitation",
-        "Thermodynamics",
-        "Oscillations and Waves",
         "Electrostatics",
-        "Current Electricity",
-        "Magnetic Effects of Current",
-        "Electromagnetic Induction and AC",
-        "Optics",
-        "Atoms and Nuclei"
+        "Optics"
       ],
       Chemistry: [
-        "Some Basic Concepts in Chemistry",
         "Atomic Structure",
         "Chemical Bonding and Molecular Structure",
         "Chemical Thermodynamics",
-        "Solutions",
-        "Equilibrium",
-        "Electrochemistry",
         "Chemical Kinetics",
-        "Periodic Table and Periodicity",
-        "d and f Block Elements",
-        "Coordination Compounds",
-        "Basic Principles of Organic Chemistry",
-        "Hydrocarbons",
+        "Basic Principles of Organic Chemistry"
+      ]
+    },
+    NEET: {
+      Biology: [
+        "Cell Structure",
+        "Genetics",
+        "Human Physiology",
+        "Plant Physiology",
+        "Ecology"
+      ],
+      Physics: [
+        "Kinematics",
+        "Laws of Motion",
+        "Thermodynamics",
+        "Electrostatics",
+        "Optics"
+      ],
+      Chemistry: [
+        "Atomic Structure",
+        "Chemical Bonding",
+        "Equilibrium",
+        "Organic Basics",
         "Biomolecules"
       ]
     }

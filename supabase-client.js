@@ -179,7 +179,7 @@
     const supa = getClient();
     const { data, error } = await supa
       .from("user_onboarding")
-      .select("user_id,exam_target,daily_practice_time,completed_at,updated_at")
+      .select("user_id,age_group,exam_target,daily_practice_time,start_subject,completed_at,updated_at")
       .eq("user_id", userId)
       .maybeSingle();
     if (error) throw error;
@@ -190,18 +190,62 @@
     const supa = getClient();
     const payload = {
       user_id: userId,
+      age_group: patch && patch.age_group ? String(patch.age_group) : null,
       exam_target: patch && patch.exam_target ? String(patch.exam_target) : null,
       daily_practice_time: patch && patch.daily_practice_time ? String(patch.daily_practice_time) : null,
+      start_subject: patch && patch.start_subject ? String(patch.start_subject) : null,
       completed_at: patch && patch.completed_at ? patch.completed_at : null,
       updated_at: new Date().toISOString()
     };
     const { data, error } = await supa
       .from("user_onboarding")
       .upsert(payload, { onConflict: "user_id" })
-      .select("user_id,exam_target,daily_practice_time,completed_at,updated_at")
+      .select("user_id,age_group,exam_target,daily_practice_time,start_subject,completed_at,updated_at")
       .single();
     if (error) throw error;
     return data;
+  }
+
+  async function getQuestionsForChat(exam, subject) {
+    const ex = String(exam || "").trim().toUpperCase();
+    const sub = String(subject || "").trim();
+    if (!ex || !sub) return [];
+    const supa = getClient();
+    const { data, error } = await supa
+      .from("question_bank")
+      .select("id,exam,subject,chapter,prompt,options,correct_option,explanation,wrong_explanations,difficulty,concept")
+      .eq("exam", ex)
+      .eq("subject", sub)
+      .limit(200);
+    if (error) throw error;
+    return Array.isArray(data) ? data : [];
+  }
+
+  async function recordChatAttempt(userId, questionId, exam, subject, chapter, correct, timeMs) {
+    const supa = getClient();
+    const payload = {
+      user_id: userId,
+      question_id: questionId,
+      exam: String(exam || "").toUpperCase(),
+      subject: String(subject || "").trim(),
+      chapter: String(chapter || "").trim(),
+      correct: Boolean(correct),
+      time_ms: Number.isFinite(timeMs) ? Math.max(0, Math.round(timeMs)) : null
+    };
+    const { error } = await supa.from("chat_question_attempts").insert(payload);
+    if (error) throw error;
+  }
+
+  async function listChatAttempts(userId, exam, subject) {
+    const supa = getClient();
+    const { data, error } = await supa
+      .from("chat_question_attempts")
+      .select("question_id,chapter,correct,time_ms,created_at")
+      .eq("user_id", userId)
+      .eq("exam", String(exam || "").toUpperCase())
+      .eq("subject", String(subject || "").trim());
+    if (error) throw error;
+    return Array.isArray(data) ? data : [];
   }
 
   window.teachmintApi = {
@@ -216,6 +260,9 @@
     listProgressForFiles,
     upsertProgress,
     getUserOnboarding,
-    upsertUserOnboarding
+    upsertUserOnboarding,
+    getQuestionsForChat,
+    recordChatAttempt,
+    listChatAttempts
   };
 })();

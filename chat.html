@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Techy Chat - Teachmint</title>
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --panel: #12182a;
+      --line: #2c3552;
+      --text: #eef3ff;
+      --muted: #a3b0d1;
+      --brand: #2aa8f4;
+      --ok: #4ad69f;
+      --bad: #ff7fa3;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Poppins", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 20% -5%, #203066 0%, transparent 45%),
+        linear-gradient(160deg, #07080f 0%, #0a0d1a 60%, #080a13 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0.9rem 1rem 5.8rem;
+    }
+
+    .wrap {
+      width: min(760px, 94vw);
+      margin: 0 auto;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .chat-head {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      border-bottom: 1px solid #27304a;
+      padding: 0.9rem 1rem 0.7rem;
+      margin: -0.9rem -1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(11, 15, 26, 0.92);
+      backdrop-filter: blur(8px);
+    }
+
+    .techy-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(140deg, #3fc1ff, #1e56e8);
+      display: grid;
+      place-items: center;
+    }
+
+    .techy-avatar svg { width: 24px; height: 24px; }
+
+    .chat-close {
+      margin-left: auto;
+      border: 1px solid #3a4667;
+      background: #1b2238;
+      color: #eef4ff;
+      border-radius: 10px;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .chat-title {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .chat-sub {
+      margin: 0.15rem 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .chat-body {
+      display: grid;
+      gap: 0.8rem;
+      padding-top: 0.2rem;
+      padding-bottom: 7.5rem;
+    }
+    .msg {
+      scroll-margin-bottom: 7.5rem;
+    }
+    #chatEnd {
+      scroll-margin-bottom: 7.5rem;
+      height: 1px;
+    }
+    body {
+      padding-bottom: 6.5rem;
+    }
+    .chat-input {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.6rem;
+      align-items: center;
+      padding: 0.7rem 1rem;
+      background: rgba(12, 16, 30, 0.92);
+      border-top: 1px solid #28324a;
+      border-radius: 0;
+      backdrop-filter: blur(8px);
+    }
+    .chat-input input {
+      border: 1px solid #2b3550;
+      border-radius: 12px;
+      background: #121a2e;
+      color: var(--text);
+      padding: 0.7rem 0.8rem;
+      font: inherit;
+      outline: none;
+    }
+    .chat-input button {
+      border: 0;
+      border-radius: 12px;
+      padding: 0.7rem 0.95rem;
+      background: #2a7ac2;
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .msg {
+      max-width: 88%;
+      padding: 0.7rem 0.85rem;
+      border-radius: 14px;
+      border: 1px solid #2a3248;
+      background: #141b30;
+      line-height: 1.45;
+      font-size: 0.98rem;
+      display: flex;
+      align-items: center;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+
+    .msg.techy {
+      justify-self: start;
+      background: #131a2e;
+    }
+
+    .msg.user {
+      justify-self: end;
+      background: #1f314e;
+      border-color: #314870;
+    }
+
+    .question-card {
+      border: 1px solid #2f3b58;
+      border-radius: 14px;
+      padding: 0.85rem;
+      background: #111827;
+      text-align: left;
+    }
+
+    .question-title {
+      margin: 0 0 0.6rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .option-list {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      padding: 0.6rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid #344262;
+      background: #1a2237;
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .option-btn.selected {
+      border-color: #6da9ff;
+      background: #223556;
+    }
+
+    .option-btn.correct {
+      border-color: var(--ok);
+      background: rgba(74, 214, 159, 0.18);
+    }
+
+    .option-btn.wrong {
+      border-color: var(--bad);
+      background: rgba(255, 127, 163, 0.18);
+    }
+
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="chat-head">
+      <div class="techy-avatar" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="30" fill="#4FAEFF" stroke="#0C2B57" stroke-width="2"/>
+          <circle cx="24" cy="26" r="4" fill="#F6FBFF" stroke="#0C2B57" stroke-width="2"/>
+          <circle cx="40" cy="26" r="4" fill="#F6FBFF" stroke="#0C2B57" stroke-width="2"/>
+          <path d="M34 34 C32 36,30 36,28 34" stroke="#102443" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M46 40 C52 42,54 48,46 50" stroke="#2F7DFF" stroke-width="4" stroke-linecap="round"/>
+          <path d="M18 44 C20 52,28 54,30 46" stroke="#1B4FE0" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="chat-title">Techy</h1>
+        <p class="chat-sub">Your problem solving friend</p>
+      </div>
+      <button class="chat-close" id="closeChatBtn" type="button">×</button>
+    </header>
+
+    <section class="chat-body" id="chatBody"></section>
+    <div id="chatEnd" aria-hidden="true"></div>
+    <form class="chat-input" id="chatInputForm">
+      <input id="chatInput" type="text" placeholder="Type a message…" autocomplete="off" />
+      <button type="submit">Send</button>
+    </form>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+    const chatBody = document.getElementById("chatBody");
+    const chatEnd = document.getElementById("chatEnd");
+    const chatInputForm = document.getElementById("chatInputForm");
+    const chatInput = document.getElementById("chatInput");
+    const api = window.teachmintApi;
+    let chatStorageKey = "";
+    let activeQuestion = null;
+    let answeredState = null;
+    let currentUserId = "";
+    let questionPool = [];
+    let attempts = [];
+    let questionStartTime = 0;
+    let messageQueue = Promise.resolve();
+    let lastElapsedMs = null;
+    let lastOutcome = null;
+
+    function pickFrom(list, seed) {
+      if (!list.length) return "";
+      let h = 0;
+      const s = String(seed || "");
+      for (let i = 0; i < s.length; i += 1) {
+        h = (h * 31 + s.charCodeAt(i)) >>> 0;
+      }
+      return list[h % list.length];
+    }
+
+    function getUserReply(text) {
+      const msg = String(text || "").trim();
+      const lower = msg.toLowerCase();
+      if (!msg) return "Tell me a bit more and I’ll tailor the next question for you.";
+
+      const chapter = activeQuestion ? activeQuestion.chapter : "";
+      const acc = chapter ? (() => {
+        const stats = buildChapterStats()[chapter];
+        if (!stats || !stats.total) return null;
+        return Math.round((stats.correct / stats.total) * 100);
+      })() : null;
+      const streak = getStreak();
+      const lastCorrect = lastOutcome ? lastOutcome.correct : null;
+
+      const empathy = [];
+      if (lower.includes("doubt") || lower.includes("confuse") || lower.includes("help")) {
+        empathy.push("Got it—let’s slow down and make the next one very guided.");
+      }
+      if (lower.includes("hard") || lower.includes("tough")) {
+        empathy.push("Thanks for telling me. I’ll dial it down and rebuild step by step.");
+      }
+      if (lower.includes("easy") || lower.includes("simple")) {
+        empathy.push("Nice! I’ll raise the challenge a notch so it stays engaging.");
+      }
+      if (lower.includes("time") || lower.includes("fast")) {
+        empathy.push("We’ll keep a steady pace and focus on accuracy first.");
+      }
+
+      const contextBits = [];
+      if (chapter && acc !== null) {
+        contextBits.push(`You’re around ${acc}% in ${chapter} so far.`);
+      }
+      if (streak >= 2) {
+        contextBits.push(`${streak} in a row—good momentum.`);
+      }
+      if (lastCorrect === false) {
+        contextBits.push("We’ll reinforce the last idea before moving up.");
+      } else if (lastCorrect === true) {
+        contextBits.push("You’ve got the last concept—let’s build on it.");
+      }
+
+      const replies = [
+        "Thanks for sharing. I’ll adapt the next question to match this.",
+        "Appreciate that. I’ll tailor the next one based on your progress.",
+        "Got it. I’ll keep the next question aligned with your pace."
+      ];
+
+      const parts = [];
+      const empath = empathy.length ? pickFrom(empathy, msg) : pickFrom(replies, msg);
+      if (empath) parts.push(empath);
+      if (contextBits.length) parts.push(contextBits.join(" "));
+      return parts.join(" ");
+    }
+
+    async function animateText(el, text) {
+      return new Promise((resolve) => {
+        el.textContent = "";
+        const chars = [...text];
+        const interval = 1000 / 28;
+        let i = 0;
+        const timer = setInterval(() => {
+          el.textContent += chars[i];
+          i += 1;
+          if (i >= chars.length) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, interval);
+      });
+    }
+
+    async function addMessage(text, who = "techy", speak = false, animate = false, onDone) {
+      const div = document.createElement("div");
+      div.className = `msg ${who}`.trim();
+      chatBody.appendChild(div);
+      if (who === "techy" && animate) {
+        await animateText(div, text);
+      } else {
+        div.textContent = text;
+      }
+      if (chatEnd) {
+        chatEnd.scrollIntoView({ behavior: "smooth", block: "end" });
+      } else {
+        div.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+      if (typeof onDone === "function") onDone();
+      return div;
+    }
+
+    function queueMessage(text, who = "techy", speak = false, animate = false) {
+      messageQueue = messageQueue.then(() => addMessage(text, who, speak, animate));
+      return messageQueue;
+    }
+
+    function queueTechy(text) {
+      return queueMessage(text, "techy", false, true);
+    }
+
+    function addQuestionCard(question, selectedChoice = null) {
+      const card = document.createElement("div");
+      card.className = "question-card";
+      const title = document.createElement("div");
+      title.className = "question-title";
+      title.textContent = question.prompt;
+      const list = document.createElement("div");
+      list.className = "option-list";
+      card.append(title, list);
+
+      question.options.forEach((opt) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "option-btn";
+        const optId = String(opt.id || "").toUpperCase();
+        btn.dataset.choice = optId;
+        btn.textContent = `${optId}) ${opt.text}`;
+        btn.addEventListener("click", () => handleAnswer(btn, optId));
+        if (selectedChoice) {
+          btn.disabled = true;
+          if (selectedChoice === optId) {
+            btn.classList.add("selected");
+            btn.classList.add(selectedChoice === question.correct ? "correct" : "wrong");
+          }
+        }
+        list.appendChild(btn);
+      });
+
+      chatBody.appendChild(card);
+      return card;
+    }
+
+    let answered = false;
+
+    async function handleAnswer(btn, choice) {
+      const normalizedChoice = String(choice || "").toUpperCase();
+      if (answered) return;
+      answered = true;
+      answeredState = { choice: normalizedChoice, correct: normalizedChoice === activeQuestion.correct };
+
+      const all = Array.from(document.querySelectorAll(".option-btn"));
+      all.forEach((el) => el.disabled = true);
+      btn.classList.add("selected");
+      const correctBtn = all.find((el) => el.dataset.choice === activeQuestion.correct);
+
+      await queueMessage(`I choose ${normalizedChoice}.`, "user", false, false);
+
+      const elapsed = questionStartTime ? Date.now() - questionStartTime : null;
+      lastElapsedMs = elapsed;
+      const wasCorrect = normalizedChoice === activeQuestion.correct;
+
+      if (wasCorrect) {
+        btn.classList.add("correct");
+        if (correctBtn && correctBtn !== btn) correctBtn.classList.add("correct");
+        await queueTechy(buildPositiveFeedback(activeQuestion, elapsed));
+        try {
+          await api.recordChatAttempt(currentUserId, activeQuestion.id, activeQuestion.exam, activeQuestion.subject, activeQuestion.chapter, true, elapsed);
+          attempts.push({ question_id: activeQuestion.id, chapter: activeQuestion.chapter, correct: true });
+        } catch {}
+        persistChat();
+      } else {
+        btn.classList.add("wrong");
+        if (correctBtn) correctBtn.classList.add("correct");
+        await queueTechy(buildWrongIntro(activeQuestion, elapsed));
+        const wrongMsg = (activeQuestion.wrongExplanations && activeQuestion.wrongExplanations[normalizedChoice])
+          ? activeQuestion.wrongExplanations[normalizedChoice]
+          : "";
+        if (wrongMsg) {
+          await queueTechy(wrongMsg);
+        }
+        if (activeQuestion.explanation) {
+          await queueTechy("Here’s the quick path to the correct answer:");
+          await queueTechy(activeQuestion.explanation);
+        }
+        try {
+          await api.recordChatAttempt(currentUserId, activeQuestion.id, activeQuestion.exam, activeQuestion.subject, activeQuestion.chapter, false, elapsed);
+          attempts.push({ question_id: activeQuestion.id, chapter: activeQuestion.chapter, correct: false });
+        } catch {}
+        persistChat();
+      }
+
+      await messageQueue;
+
+      lastOutcome = { correct: wasCorrect, elapsed };
+      await showNextQuestion(lastOutcome);
+    }
+
+    function normalizeQuestion(row) {
+      if (!row || typeof row !== "object") return null;
+      const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
+      const opts = Array.isArray(row.options) ? row.options : [];
+      const normalizedOptions = opts
+        .map((opt, idx) => {
+          if (opt && typeof opt === "object") {
+            const id = opt.id || letters[idx] || String(idx + 1);
+            const text = opt.text || opt.label || opt.value || opt.name || String(opt);
+            return { id: String(id), text: String(text) };
+          }
+          const id = letters[idx] || String(idx + 1);
+          return { id: String(id), text: String(opt) };
+        })
+        .filter((o) => o && o.text !== undefined);
+
+      return {
+        id: row.id,
+        exam: row.exam,
+        subject: row.subject,
+        chapter: row.chapter,
+        prompt: row.prompt,
+        options: normalizedOptions,
+        correct: String(row.correct_option || row.correct || "").toUpperCase(),
+        explanation: row.explanation || "",
+        wrongExplanations: row.wrong_explanations || row.wrongExplanations || {},
+        difficulty: row.difficulty || "",
+        concept: row.concept || ""
+      };
+    }
+
+    function buildChapterStats() {
+      const stats = {};
+      for (const att of attempts) {
+        const chapter = att.chapter || "";
+        if (!stats[chapter]) stats[chapter] = { total: 0, correct: 0 };
+        stats[chapter].total += 1;
+        if (att.correct) stats[chapter].correct += 1;
+      }
+      return stats;
+    }
+
+    function pickNextQuestion(excludeId = null) {
+      if (!Array.isArray(questionPool) || !questionPool.length) return null;
+      const chapterStats = buildChapterStats();
+      const perQuestionAttempts = {};
+      for (const att of attempts) {
+        const qid = att.question_id || att.questionId;
+        if (!qid) continue;
+        if (!perQuestionAttempts[qid]) perQuestionAttempts[qid] = { total: 0, correct: 0 };
+        perQuestionAttempts[qid].total += 1;
+        if (att.correct) perQuestionAttempts[qid].correct += 1;
+      }
+
+      const candidates = questionPool.filter((q) => q && q.id && q.id !== excludeId);
+      const scored = candidates.map((q) => {
+        const ch = q.chapter || "";
+        const chStat = chapterStats[ch] || { total: 0, correct: 0 };
+        const chAcc = chStat.total ? chStat.correct / chStat.total : -1; // -1 => unseen chapter
+        const qa = perQuestionAttempts[q.id] || { total: 0, correct: 0 };
+        const qaAcc = qa.total ? qa.correct / qa.total : -1;
+
+        let bucket = 3;
+        if (qa.total === 0) bucket = 0; // unseen question highest priority
+        else if (chAcc >= 0 && chAcc < 0.7) bucket = 1; // weak chapter
+        else if (qaAcc >= 0.8) bucket = 4; // deprioritize mastered
+        else bucket = 2;
+
+        return {
+          q,
+          bucket,
+          attempts: qa.total,
+          chapterAcc: chAcc,
+          questionAcc: qaAcc
+        };
+      });
+
+      scored.sort((a, b) => {
+        if (a.bucket !== b.bucket) return a.bucket - b.bucket;
+        if (a.attempts !== b.attempts) return a.attempts - b.attempts;
+        if (a.chapterAcc !== b.chapterAcc) return a.chapterAcc - b.chapterAcc;
+        return (a.questionAcc - b.questionAcc);
+      });
+
+      return scored.length ? scored[0].q : null;
+    }
+
+    function getStreak() {
+      let streak = 0;
+      for (let i = attempts.length - 1; i >= 0; i -= 1) {
+        const att = attempts[i];
+        if (att && att.correct) {
+          streak += 1;
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+
+    function buildComfortMessage(previousCorrect, prevQuestion, allAttempts, elapsedMs) {
+      const chapter = prevQuestion ? prevQuestion.chapter : "";
+      const chapterStat = buildChapterStats()[chapter] || { total: 0, correct: 0 };
+      const accuracy = chapterStat.total ? Math.round((chapterStat.correct / chapterStat.total) * 100) : null;
+      const streak = getStreak();
+      const timeText = elapsedMs ? ` You solved it in about ${(elapsedMs / 1000).toFixed(1)}s.` : "";
+
+      if (previousCorrect) {
+        const accText = accuracy !== null ? `Your accuracy on ${chapter} is around ${accuracy}% so far.` : "";
+        const streakText = streak >= 2 ? ` That's ${streak} correct in a row!` : "";
+        return `Nice work on that one!${streakText}${timeText} ${accText} Let's try another question${chapter ? " from " + chapter : ""}, keeping the same flow.`;
+      }
+      const accText = accuracy !== null ? `So far you're at about ${accuracy}% on ${chapter}.` : "";
+      return `No worries—mistakes help us learn.${timeText} ${accText} I'll pick another one to reinforce this concept, and we'll go step by step.`;
+    }
+
+    function buildPositiveFeedback(prevQuestion, elapsedMs) {
+      const chapter = prevQuestion ? prevQuestion.chapter : "";
+      const accuracy = buildChapterStats()[chapter]?.total
+        ? Math.round((buildChapterStats()[chapter].correct / buildChapterStats()[chapter].total) * 100)
+        : null;
+      const timeText = elapsedMs ? ` in ${(elapsedMs / 1000).toFixed(1)}s` : "";
+      const accText = accuracy !== null ? ` Accuracy on ${chapter} sits around ${accuracy}%.` : "";
+      const streak = getStreak();
+      const streakText = streak >= 3 ? ` Loving the ${streak}-in-a-row streak.` : "";
+      return `Good job! You handled that${timeText}.${accText} ${streakText} Ready for another?`;
+    }
+
+    function buildWrongIntro(prevQuestion, elapsedMs) {
+      const chapter = prevQuestion ? prevQuestion.chapter : "";
+      const chapterStat = buildChapterStats()[chapter] || { total: 0, correct: 0 };
+      const attemptsOnChapter = chapterStat.total || 0;
+      const acc = attemptsOnChapter ? Math.round((chapterStat.correct / attemptsOnChapter) * 100) : null;
+      const timeText = elapsedMs ? ` Took about ${(elapsedMs / 1000).toFixed(1)}s.` : "";
+      const accText = acc !== null ? ` You're making progress on ${chapter}.` : "";
+      if (attemptsOnChapter <= 2) {
+        return `All good, we're just warming up on ${chapter}.${timeText}${accText} Let's untangle this together.`;
+      }
+      if (acc !== null && acc < 60) {
+        return `This ${chapter} item is still tricky, and that's okay.${timeText}${accText} I'll walk you through the key idea and we’ll lock it in.`;
+      }
+      return `Almost there!${timeText}${accText} Let's quickly review why this one was different.`;
+    }
+
+    async function showNextQuestion(prevOutcome) {
+      const next = pickNextQuestion(activeQuestion ? activeQuestion.id : null);
+      if (!next) {
+        await queueTechy("No more questions available right now.");
+        persistChat();
+        return;
+      }
+      const comfort = buildComfortMessage(
+        prevOutcome ? prevOutcome.correct : false,
+        activeQuestion,
+        attempts,
+        prevOutcome ? prevOutcome.elapsed : null
+      );
+      if (comfort) {
+        await queueTechy(comfort);
+      }
+      await messageQueue;
+      activeQuestion = next;
+      answered = false;
+      answeredState = null;
+      addQuestionCard(activeQuestion);
+      questionStartTime = Date.now();
+      persistChat();
+    }
+
+    async function init() {
+      if (!api || !api.isConfigured()) {
+        queueTechy("No questions available");
+        return;
+      }
+
+      let user = null;
+      try {
+        user = await api.getCurrentUser();
+      } catch {
+        user = null;
+      }
+      if (!user) {
+        queueTechy("No questions available");
+        return;
+      }
+      currentUserId = user.id || "";
+      chatStorageKey = currentUserId ? `teachmint_chat_state_v1:${currentUserId}` : "";
+
+      try {
+        attempts = await api.listChatAttempts(user.id, "JEE", "Maths");
+      } catch {
+        attempts = [];
+      }
+      try {
+        questionPool = (await api.getQuestionsForChat("JEE", "Maths")).map(normalizeQuestion).filter(Boolean);
+      } catch {
+        questionPool = [];
+      }
+
+      const cached = loadChat();
+      if (cached) {
+        renderChatFromState(cached);
+        return;
+      }
+
+      await queueTechy("Hey! I’m Techy, your study buddy. Let’s ease in with a simple question together.");
+      persistChat();
+      let onboarding = null;
+      try {
+        onboarding = await api.getUserOnboarding(user.id);
+      } catch {}
+      const exam = onboarding && onboarding.exam_target ? onboarding.exam_target : "";
+      const subject = onboarding && onboarding.start_subject ? onboarding.start_subject : "";
+      const isEligible = String(exam).toUpperCase().includes("JEE") && String(subject).toLowerCase() === "maths";
+      if (!isEligible) {
+        queueTechy("No questions available");
+        persistChat();
+        return;
+      }
+
+      const nextQ = pickNextQuestion();
+      if (!nextQ) {
+        queueTechy("No questions available");
+        persistChat();
+        return;
+      }
+      await messageQueue;
+      activeQuestion = nextQ;
+      addQuestionCard(activeQuestion);
+      questionStartTime = Date.now();
+      answered = false;
+      answeredState = null;
+      persistChat();
+    }
+
+    init();
+
+    const closeChatBtn = document.getElementById("closeChatBtn");
+    if (closeChatBtn) {
+      closeChatBtn.addEventListener("click", () => {
+        let firstExit = false;
+        try {
+          firstExit = !localStorage.getItem("chat_exit_once");
+        } catch {}
+        if (firstExit) {
+          try { localStorage.setItem("chat_exit_once", "1"); } catch {}
+          window.location.href = "practice-hub.html";
+          return;
+        }
+        let returnTo = "";
+        try {
+          returnTo = sessionStorage.getItem("chat_return_to") || "";
+        } catch {}
+        if (!returnTo) returnTo = "index.html";
+        window.location.href = returnTo;
+      });
+    }
+
+    function persistChat() {
+      if (!chatStorageKey) return;
+      const messages = Array.from(chatBody.children).map((node) => {
+        if (node.classList.contains("question-card")) {
+          return { kind: "question" };
+        }
+        const who = node.classList.contains("user") ? "user" : "techy";
+        return { kind: "text", who, text: node.textContent || "" };
+      });
+      const payload = {
+        messages,
+        question: activeQuestion,
+        answeredState,
+        attempts,
+        questionPool
+      };
+      localStorage.setItem(chatStorageKey, JSON.stringify(payload));
+    }
+
+    function loadChat() {
+      try {
+        if (!chatStorageKey) return null;
+        const raw = localStorage.getItem(chatStorageKey);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function renderChatFromState(state) {
+      chatBody.innerHTML = "";
+      activeQuestion = state.question ? (normalizeQuestion(state.question) || state.question) : null;
+      answeredState = state.answeredState || null;
+      attempts = Array.isArray(state.attempts) ? state.attempts : [];
+      questionPool = Array.isArray(state.questionPool) ? state.questionPool.map(normalizeQuestion).filter(Boolean) : [];
+      answered = Boolean(answeredState);
+      const messages = Array.isArray(state.messages) ? state.messages : [];
+      (async () => {
+        for (const msg of messages) {
+          if (msg.kind === "question" && activeQuestion) {
+            addQuestionCard(activeQuestion, answeredState ? answeredState.choice : null);
+          } else if (msg.kind === "text") {
+            await queueMessage(msg.text, msg.who || "techy", false, false);
+          }
+        }
+        await messageQueue;
+        if (chatEnd) {
+          chatEnd.scrollIntoView({ behavior: "smooth", block: "end" });
+        }
+        if (!activeQuestion && questionPool.length) {
+          const next = pickNextQuestion();
+          if (next) {
+            activeQuestion = next;
+            addQuestionCard(activeQuestion);
+            questionStartTime = Date.now();
+          }
+        } else if (activeQuestion && !answeredState) {
+          questionStartTime = Date.now();
+        }
+      })();
+    }
+
+    if (chatInputForm) {
+      chatInputForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const value = chatInput ? chatInput.value.trim() : "";
+        if (!value) return;
+        if (chatInput) chatInput.value = "";
+        await queueMessage(value, "user", false, false);
+        await queueTechy(getUserReply(value));
+        await messageQueue;
+        if (answeredState || !activeQuestion) {
+          await showNextQuestion(lastOutcome || { correct: false, elapsed: lastElapsedMs });
+        }
+      });
+    }
+  </script>
+</body>
+</html>

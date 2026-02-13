@@ -132,6 +132,43 @@
     .custom-bar {
       margin-bottom: 0.85rem;
     }
+    .rank-card {
+      border: 1px solid rgba(88, 163, 255, 0.7);
+      border-radius: 14px;
+      background: radial-gradient(circle at 20% 10%, rgba(58, 136, 255, 0.18), transparent 55%),
+        linear-gradient(155deg, #182748, #0f1a33);
+      padding: 0.95rem 1rem;
+      margin-bottom: 0.9rem;
+      box-shadow: 0 12px 22px rgba(18, 30, 60, 0.35), 0 0 18px rgba(88, 163, 255, 0.25);
+    }
+    .rank-title {
+      margin: 0 0 0.25rem;
+      font-size: 0.95rem;
+      color: #9eb3da;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .rank-value {
+      margin: 0.2rem 0 0.3rem;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #eff5ff;
+    }
+    .rank-note {
+      margin: 0;
+      color: #a8b5d9;
+      font-size: 0.85rem;
+    }
+    .rank-tip {
+      margin: 0.55rem 0 0;
+      padding: 0.5rem 0.65rem;
+      border-radius: 10px;
+      border: 1px dashed rgba(134, 189, 255, 0.5);
+      background: rgba(18, 30, 56, 0.6);
+      color: #e8f2ff;
+      font-size: 0.84rem;
+      line-height: 1.25;
+    }
     .custom-btn {
       width: 100%;
       border: 1px solid #2f9bf0;
@@ -147,6 +184,38 @@
     .tests-list {
       display: grid;
       gap: 0.75rem;
+    }
+    .score-redirect {
+      border: 1px solid #2b3653;
+      border-radius: 12px;
+      background: linear-gradient(165deg, rgba(21, 29, 47, 0.95), rgba(14, 20, 34, 0.95));
+      padding: 0.8rem 0.85rem;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+    }
+    .score-redirect h3 {
+      margin: 0;
+      font-size: 0.98rem;
+      color: #cfe0ff;
+    }
+    .score-redirect p {
+      margin: 0.2rem 0 0;
+      font-size: 0.82rem;
+      color: #a8b5d9;
+    }
+    .score-redirect .score-btn {
+      border: 1px solid #2f9bf0;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2f9bf0, #2377bc);
+      color: #fff;
+      padding: 0.5rem 0.75rem;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
     }
     .test-card {
       border: 1px solid #2d3857;
@@ -432,6 +501,25 @@
       color: #eff6ff;
       box-shadow: inset 0 0 0 1px rgba(47, 155, 240, 0.35);
     }
+
+    .chat-fab {
+      position: fixed;
+      right: 1rem;
+      bottom: 4.8rem;
+      z-index: 25;
+      border: 0;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #2f9bf0, #2377bc);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 10px 18px rgba(35, 119, 188, 0.35);
+    }
+
+    .chat-fab svg { width: 34px; height: 34px; }
   </style>
 </head>
 <body>
@@ -460,8 +548,24 @@
           <button id="examTrigger" class="select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">JEE</button>
           <div id="examMenu" class="select-menu hidden" role="listbox" aria-label="Select exam">
             <button class="select-option" data-exam="JEE" type="button">JEE</button>
+            <button class="select-option" data-exam="NEET" type="button">NEET (UG)</button>
           </div>
         </div>
+      </div>
+
+      <div class="rank-card" id="rankCard">
+        <div class="rank-title">Predicted Rank</div>
+        <div id="rankValue" class="rank-value">Loading prediction…</div>
+        <p id="rankNote" class="rank-note"></p>
+        <p id="rankTip" class="rank-tip"></p>
+      </div>
+
+      <div class="score-redirect">
+        <div>
+          <h3>Your Mock Test Scores</h3>
+          <p>View public and custom test performance in one place.</p>
+        </div>
+        <button id="viewScoresBtn" class="score-btn" type="button">View Scores</button>
       </div>
 
       <div class="custom-bar">
@@ -521,6 +625,17 @@
     <button class="bottom-btn active" type="button">Test Series</button>
   </nav>
 
+  <button id="chatFab" class="chat-fab" type="button" aria-label="Open chat">
+    <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+      <circle cx="32" cy="32" r="30" fill="#4FAEFF" stroke="#0C2B57" stroke-width="2"/>
+      <circle cx="24" cy="26" r="4" fill="#F6FBFF" stroke="#0C2B57" stroke-width="2"/>
+      <circle cx="40" cy="26" r="4" fill="#F6FBFF" stroke="#0C2B57" stroke-width="2"/>
+      <path d="M34 34 C32 36,30 36,28 34" stroke="#102443" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M46 40 C52 42,54 48,46 50" stroke="#2F7DFF" stroke-width="4" stroke-linecap="round"/>
+      <path d="M18 44 C20 52,28 54,30 46" stroke="#1B4FE0" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+  </button>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="supabase-client.js"></script>
@@ -538,6 +653,10 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const goStudyBtn = document.getElementById("goStudyBtn");
     const goPracticeBtn = document.getElementById("goPracticeBtn");
+    const rankValue = document.getElementById("rankValue");
+    const rankNote = document.getElementById("rankNote");
+    const rankTip = document.getElementById("rankTip");
+    const viewScoresBtn = document.getElementById("viewScoresBtn");
 
     const openCustomBtn = document.getElementById("openCustomBtn");
     const customOverlay = document.getElementById("customOverlay");
@@ -564,7 +683,10 @@
     const defaultStats = {
       "JEE:jee-1": { completed: 1240, rating_sum: 5230, rating_count: 1320 },
       "JEE:jee-2": { completed: 890, rating_sum: 3660, rating_count: 940 },
-      "JEE:jee-3": { completed: 640, rating_sum: 2590, rating_count: 700 }
+      "JEE:jee-3": { completed: 640, rating_sum: 2590, rating_count: 700 },
+      "NEET:neet-1": { completed: 1530, rating_sum: 6550, rating_count: 1620 },
+      "NEET:neet-2": { completed: 1010, rating_sum: 4200, rating_count: 1090 },
+      "NEET:neet-3": { completed: 730, rating_sum: 2990, rating_count: 790 }
     };
 
     const testTemplates = {
@@ -572,6 +694,11 @@
         { id: "jee-1", title: "JEE Mock Test 1", syllabus: "Maths + Physics + Chemistry", questions: 90, minutes: 180, isCustom: false },
         { id: "jee-2", title: "JEE Mock Test 2", syllabus: "Core Concepts Revision", questions: 75, minutes: 150, isCustom: false },
         { id: "jee-3", title: "JEE Speed Test", syllabus: "Mixed High-Weightage Topics", questions: 45, minutes: 60, isCustom: false }
+      ],
+      NEET: [
+        { id: "neet-1", title: "NEET Mock Test 1", syllabus: "Biology + Physics + Chemistry", questions: 180, minutes: 180, isCustom: false },
+        { id: "neet-2", title: "NEET Mock Test 2", syllabus: "NCERT Based Mix", questions: 120, minutes: 120, isCustom: false },
+        { id: "neet-3", title: "NEET Time Trial", syllabus: "High-Frequency NEET Topics", questions: 60, minutes: 60, isCustom: false }
       ]
     };
 
@@ -582,6 +709,100 @@
     let customTestsByExam = loadCustomTests();
     let selectedSubjects = new Set();
     let selectedChapters = new Set();
+    let attemptsCache = [];
+
+    function clamp(num, min, max) {
+      return Math.min(max, Math.max(min, num));
+    }
+
+    async function loadAttemptsForExam(exam) {
+      attemptsCache = [];
+      if (!api || !api.isConfigured() || !currentUser) return [];
+      const catalog = window.curriculumData && window.curriculumData.catalog ? window.curriculumData.catalog : {};
+      const subjectMap = catalog[exam] || {};
+      const subjects = Object.keys(subjectMap);
+      if (!subjects.length) return [];
+      try {
+        const lists = await Promise.all(subjects.map((subject) => api.listChatAttempts(currentUser.id, exam, subject)));
+        attemptsCache = lists.flat();
+      } catch {
+        attemptsCache = [];
+      }
+      return attemptsCache;
+    }
+
+    function getRankPrediction(exam, attempts) {
+      const total = attempts.length;
+      if (total < 5) {
+        return {
+          headline: "Not enough data yet",
+          note: "Answer a few more questions in Practice or Chat to get a prediction."
+        };
+      }
+      const correct = attempts.filter((a) => a.correct).length;
+      const accuracy = correct / total;
+      const depth = clamp(Math.log10(total + 1) / 2, 0, 1);
+      const percentile = clamp(Math.round(50 + accuracy * 40 + depth * 10), 10, 99);
+      const totalCandidates = exam === "JEE" ? 1000000 : 2000000;
+      const rank = Math.max(1, Math.round(((100 - percentile) / 100) * totalCandidates));
+      const low = Math.max(1, Math.round(rank * 0.8));
+      const high = Math.max(low + 1, Math.round(rank * 1.2));
+      return {
+        headline: `Estimated ${exam} rank: ${low.toLocaleString()}–${high.toLocaleString()}`,
+        note: `Based on ${total} attempts at ${Math.round(accuracy * 100)}% accuracy. Percentile ~${percentile}.`
+      };
+    }
+
+    async function updateRankPrediction() {
+      if (!rankValue || !rankNote) return;
+      rankValue.textContent = "Loading prediction…";
+      rankNote.textContent = "";
+      if (rankTip) rankTip.textContent = "";
+      const attempts = await loadAttemptsForExam(selectedExam);
+      const prediction = getRankPrediction(selectedExam, attempts);
+      rankValue.textContent = prediction.headline;
+      rankNote.textContent = prediction.note;
+      if (rankTip) {
+        rankTip.textContent = buildPracticeTip(selectedExam, attempts);
+      }
+    }
+
+    function buildPracticeTip(exam, attempts) {
+      const catalog = window.curriculumData && window.curriculumData.catalog ? window.curriculumData.catalog : {};
+      const subjectMap = catalog[exam] || {};
+      const allChapters = [];
+      for (const [subject, chapters] of Object.entries(subjectMap)) {
+        if (!Array.isArray(chapters)) continue;
+        for (const chapter of chapters) {
+          allChapters.push({ subject, chapter });
+        }
+      }
+      if (!attempts.length) {
+        const first = allChapters[0];
+        return first
+          ? `Techy suggests: start with ${first.subject} • ${first.chapter} (Easy) to build momentum today.`
+          : "Techy suggests: start with Easy questions to build momentum today.";
+      }
+
+      const stats = new Map();
+      for (const a of attempts) {
+        const key = `${a.subject}::${a.chapter}`;
+        if (!stats.has(key)) stats.set(key, { subject: a.subject, chapter: a.chapter, total: 0, correct: 0 });
+        const row = stats.get(key);
+        row.total += 1;
+        if (a.correct) row.correct += 1;
+      }
+      let weakest = null;
+      for (const row of stats.values()) {
+        const acc = row.total ? row.correct / row.total : 0;
+        if (!weakest || acc < weakest.acc) weakest = { ...row, acc };
+      }
+      if (weakest) {
+        const focus = weakest.acc < 0.6 ? "Easy + Medium" : weakest.acc < 0.8 ? "Medium + Hard" : "PYQs";
+        return `Techy suggests: practice ${weakest.subject} • ${weakest.chapter} (${focus}) today to lift your rank.`;
+      }
+      return "Techy suggests: do a mixed set across chapters today to lift your rank.";
+    }
 
     function loadStats() {
       let parsed = null;
@@ -593,14 +814,19 @@
       return out;
     }
 
+    function openScores() {
+      const url = `test-scores.html?exam=${encodeURIComponent(selectedExam)}`;
+      window.location.href = url;
+    }
+
     function loadCustomTests() {
       let parsed = null;
       try {
         parsed = JSON.parse(localStorage.getItem(CUSTOM_TESTS_STORAGE_KEY) || "null");
       } catch {}
-      const base = { JEE: [] };
+      const base = { JEE: [], NEET: [] };
       if (parsed && typeof parsed === "object") {
-        for (const exam of ["JEE"]) {
+        for (const exam of ["JEE", "NEET"]) {
           base[exam] = Array.isArray(parsed[exam]) ? parsed[exam] : [];
         }
       }
@@ -763,10 +989,12 @@
 
         const card = document.createElement("article");
         card.className = "test-card";
+        const isPublic = !t.isCustom;
         card.innerHTML = `
           <div class="test-head">
             <div>
               <h3 class="test-title">${t.title}</h3>
+              <div class="test-meta">${isPublic ? "Public Mock Test" : "Your Custom Mock Test"}</div>
               <div class="test-meta">${t.syllabus}</div>
               <div class="test-meta">${t.questions} questions • ${t.minutes} mins</div>
               <div class="test-stats">Completed by ${s.completed} learners • ${formatStars(avg)} (${s.ratingCount})</div>
@@ -774,7 +1002,7 @@
             <div class="timer-pill">${String(t.minutes).padStart(2, "0")}:00</div>
           </div>
           <div class="test-actions">
-            <button class="test-btn" type="button" id="create-${t.id}">Create Questions</button>
+            <button class="test-btn" type="button" id="create-${t.id}">${isPublic ? "Start Test" : "Create Questions"}</button>
             ${t.isCustom ? "" : `<button class="test-btn ghost" type="button" id="leader-${t.id}">Leaderboard</button>`}
           </div>
         `;
@@ -815,10 +1043,11 @@
       welcomeText.textContent = `Signed in as ${currentUser.email || "user"}`;
       try {
         const onboarding = await api.getUserOnboarding(currentUser.id);
-        const preferredExam = onboarding && typeof onboarding.exam_target === "string"
-          ? onboarding.exam_target.trim().toUpperCase()
+        const preferredExamRaw = onboarding && typeof onboarding.exam_target === "string"
+          ? onboarding.exam_target.trim()
           : "";
-        if (preferredExam === "JEE") {
+        const preferredExam = preferredExamRaw.replace(/\(.*?\)/g, "").trim().toUpperCase();
+        if (["JEE", "NEET"].includes(preferredExam)) {
           selectedExam = preferredExam;
         }
       } catch {}
@@ -826,6 +1055,7 @@
       syncExamDropdown();
       syncLevelDropdown();
       renderTests();
+      await updateRankPrediction();
     }
 
     examTrigger.addEventListener("click", () => {
@@ -837,6 +1067,7 @@
         selectedExam = option.dataset.exam;
         closeExamMenu();
         renderTests();
+        updateRankPrediction();
       });
     }
 
@@ -929,6 +1160,20 @@
       } catch {}
       window.location.href = "index.html";
     });
+
+    const chatFab = document.getElementById("chatFab");
+    if (chatFab) {
+      chatFab.addEventListener("click", () => {
+        try {
+          sessionStorage.setItem("chat_return_to", window.location.pathname.split("/").pop() || "test-series.html");
+        } catch {}
+        window.location.href = "chat.html";
+      });
+    }
+
+    if (viewScoresBtn) {
+      viewScoresBtn.addEventListener("click", openScores);
+    }
 
     init();
   </script>

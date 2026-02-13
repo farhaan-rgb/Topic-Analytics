@@ -139,9 +139,13 @@
     <section id="empty" class="empty" style="display:none;"></section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
   <script src="curriculum-data.js"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
+    const api = window.teachmintApi;
     const exam = (params.get("exam") || "").trim().toUpperCase();
     const subject = (params.get("subject") || "").trim();
     const chapter = (params.get("chapter") || "").trim();
@@ -162,6 +166,9 @@
     let index = 0;
     let selectedChoice = null;
     let evaluated = false;
+    let currentUser = null;
+    let questionStartTime = 0;
+    let recordedAttempt = false;
 
     function showEmpty(msg) {
       quizEl.style.display = "none";
@@ -174,21 +181,23 @@
       const q = questions[index];
       selectedChoice = null;
       evaluated = false;
+      recordedAttempt = false;
       progressEl.textContent = `Question ${index + 1} / ${questions.length}`;
       questionTextEl.textContent = q.prompt;
       actionBtn.textContent = "Check Answer";
       actionBtn.disabled = true;
       optionsEl.innerHTML = "";
+      questionStartTime = Date.now();
 
-      q.choices.forEach((choice, idx) => {
+      q.options.forEach((choice, idx) => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "opt";
-        btn.dataset.choice = choice;
-        btn.innerHTML = `<span class="opt-tag">${optionTags[idx] || idx + 1}</span><span>${choice}</span>`;
+        btn.dataset.choice = choice.id;
+        btn.innerHTML = `<span class="opt-tag">${choice.id || optionTags[idx] || idx + 1}</span><span>${choice.text}</span>`;
         btn.addEventListener("click", () => {
           if (evaluated) return;
-          selectedChoice = choice;
+          selectedChoice = choice.id;
           actionBtn.disabled = false;
           Array.from(optionsEl.children).forEach((node) => node.classList.remove("selected"));
           btn.classList.add("selected");
@@ -208,6 +217,10 @@
         if (isSelected && !isAnswer) node.classList.add("wrong");
       });
       actionBtn.textContent = index >= questions.length - 1 ? "Finish" : "Next Question";
+      if (!recordedAttempt) {
+        recordAttempt(q, selectedChoice === q.answer);
+        recordedAttempt = true;
+      }
     }
 
     function next() {
@@ -228,19 +241,90 @@
     });
 
     const catalog = window.curriculumData && window.curriculumData.catalog ? window.curriculumData.catalog : {};
-    backBtn.href = `practice-hub.html?exam=${encodeURIComponent(exam || "JEE")}`;
+    backBtn.href = `practice-hub.html?exam=${encodeURIComponent(exam || "JEE")}&subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapter)}&track=${encodeURIComponent(track)}`;
     const subjectMap = exam && catalog[exam] && typeof catalog[exam] === "object" ? catalog[exam] : null;
     const chapters = subjectMap && subject && Array.isArray(subjectMap[subject]) ? subjectMap[subject] : null;
     const isValid = Boolean(subjectMap && subject && chapter && chapters && chapters.includes(chapter));
-    if (!isValid || !window.curriculumData || typeof window.curriculumData.generateQuestions !== "function") {
-      titleEl.textContent = "Topic unavailable";
-      metaEl.textContent = "";
-      showEmpty("This topic is not available. Go back and try again.");
-    } else {
+
+    function normalizeQuestion(row) {
+      if (!row) return null;
+      const opts = Array.isArray(row.options) ? row.options : [];
+      const letters = ["A", "B", "C", "D", "E", "F"];
+      const normalizedOpts = opts.map((o, idx) => {
+        if (o && typeof o === "object") {
+          const id = String(o.id || letters[idx] || idx + 1).toUpperCase();
+          const text = o.text || o.label || o.value || o.name || "";
+          return { id, text: String(text) };
+        }
+        const id = letters[idx] || String(idx + 1);
+        return { id, text: String(o) };
+      }).filter((o) => o.id && o.text);
+      return {
+        id: row.id,
+        prompt: row.prompt || "",
+        options: normalizedOpts,
+        answer: String(row.correct_option || row.correct || "").toUpperCase()
+      };
+    }
+
+    async function loadQuestions() {
+      if (!isValid || !api || !api.isConfigured()) {
+        titleEl.textContent = "Topic unavailable";
+        metaEl.textContent = "";
+        showEmpty("This topic is not available. Go back and try again.");
+        return;
+      }
       titleEl.textContent = chapter;
-      metaEl.textContent = `${exam} • ${subject} • ${track} • 10 Questions`;
-      questions = window.curriculumData.generateQuestions(exam, subject, chapter, track, 10);
-      renderQuestion();
+      metaEl.textContent = `${exam} • ${subject} • ${track}`;
+      try {
+        try {
+          currentUser = await api.getCurrentUser();
+        } catch {
+          currentUser = null;
+        }
+        const all = await api.getQuestionsForChat(exam, subject);
+        const filtered = (all || []).filter((q) => {
+          if (!q || q.chapter !== chapter) return false;
+          const diff = String(q.difficulty || "").toLowerCase();
+          if (track === "Easy") return diff === "easy";
+          if (track === "Medium") return diff === "medium";
+          if (track === "Hard") return diff === "hard";
+          if (track === "PYQs") return diff === "pyq";
+          if (track === "Test yourself") return ["easy","medium","hard","pyq","extras"].includes(diff);
+          if (track === "Extras") return diff === "extras";
+          return true;
+        });
+        questions = filtered.map(normalizeQuestion).filter(Boolean);
+        if (!questions.length) {
+          showEmpty("No questions available for this selection yet.");
+          return;
+        }
+        renderQuestion();
+        metaEl.textContent = `${exam} • ${subject} • ${track} • ${questions.length} Questions`;
+      } catch (err) {
+        console.error(err);
+        showEmpty("Unable to load questions right now.");
+      }
+    }
+
+    loadQuestions();
+
+    async function recordAttempt(question, isCorrect) {
+      if (!currentUser || !question || !question.id) return;
+      const elapsed = questionStartTime ? Date.now() - questionStartTime : null;
+      try {
+        await api.recordChatAttempt(
+          currentUser.id,
+          question.id,
+          exam,
+          subject,
+          chapter,
+          Boolean(isCorrect),
+          elapsed
+        );
+      } catch (err) {
+        console.error(err);
+      }
     }
   </script>
 </body>
